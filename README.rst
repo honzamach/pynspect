@@ -22,26 +22,31 @@ Features
 
 Currently the package contains following features:
 
-:py:mod:`pyzenkit.jsonconf`
-    Module for handling JSON based configuration files and directories.
+:py:mod:`pynspect.jpath`
+    Module for parsing **JPaths** and setting or retrieving values on given
+    **JPath** within data structures.
 
-:py:mod:`pyzenkit.daemonizer`
-    Module for taking care of all process daemonization tasks.
+:py:mod:`pynspect.lexer`
+    Module encapsulating of `PLY <http://www.dabeaz.com/ply/>`__ lexical analyzer
+    for internal filtering and query language grammar.
 
-:py:mod:`pyzenkit.baseapp`
-    Module for writing generic console applications.
+:py:mod:`pynspect.gparser`
+    Module encapsulating of `PLY <http://www.dabeaz.com/ply/>`__ parser for internal
+    filtering and query language grammar.
 
-:py:mod:`pyzenkit.zenscript`
-    Module for writing generic console scripts with built-in support for repeated
-    executions (for example by cron-like service).
+:py:mod:`pynspect.rules`
+    Module containing object representations of internal filtering and query
+    language grammar.
 
-:py:mod:`pyzenkit.zendaemon`
-    Module for writing generic system services (daemons).
+:py:mod:`pynspect.filters`
+    Module providing high-level tools for data inspection based on internal filtering
+    and query grammar.
 
 
 Copyright
 --------------------------------------------------------------------------------
 
-Copyright (C) since 2016 CESNET, z.s.p.o (http://www.ces.net/)
-Copyright (C) since 2016 Jan Mach <honza.mach.ml@gmail.com>
-Use of this package is governed by the MIT license, see LICENSE file.
+| Copyright (C) since 2016 CESNET, z.s.p.o (http://www.ces.net/)
+| Copyright (C) since 2016 Jan Mach <honza.mach.ml@gmail.com>
+| Use of this package is governed by the MIT license, see LICENSE file.
+|

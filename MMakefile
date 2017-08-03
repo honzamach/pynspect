@@ -1,0 +1,107 @@
+#-------------------------------------------------------------------------------
+# MASTER MAKEFILE FOR PYNSPECT PACKAGE
+#
+# Copyright (C) since 2016 CESNET, z.s.p.o (http://www.ces.net/)
+# Copyright (C) since 2016 Jan Mach <honza.mach.ml@gmail.com>
+# Use of this package is governed by the MIT license, see LICENSE file.
+#-------------------------------------------------------------------------------
+
+DIR_LIB = pyzenkit
+
+DIST_SIZE:=$(shell ls dist | wc -l)
+
+#
+# Default make target.
+#
+all: docs archive bdist deploy
+
+build: archive bdist
+
+buildbot: bdist
+
+check: pyflakes pylint test
+
+
+#-------------------------------------------------------------------------------
+
+
+help:
+	$(info List of possible make targets:)
+	$(info   )
+	$(info   * all: archive previous packages, build new distribution and deploy to PyPI [default])
+	$(info   * build: archive previous packages and build new distribution)
+	$(info   * buildbot: build new distribution using buildbot automated system)
+	$(info   * docs: generate project documentation)
+	$(info   * check: perform extensive code checking)
+	$(info      = pyflakes: check source code with pyflakes)
+	$(info      = pylint: check source code with pylint)
+	$(info      = test: run unit tests with nosetest)
+	$(info   * archive: archive previous packages)
+	$(info   * bdist:   build new distribution)
+	$(info   * install: install distribution on local machine)
+	$(info   * deploy:  deploy to PyPI)
+	$(info   )
+
+
+#-------------------------------------------------------------------------------
+
+
+docs: FORCE
+	echo "*** Generating project documentation ***"
+	#make clean
+	#make apidoc
+	make html
+
+
+#-------------------------------------------------------------------------------
+
+
+pyflakes: FORCE
+	echo "*** Checking code with pyflakes ***"
+	python3 -m pyflakes $(DIR_LIB)/*.py
+
+pylint: FORCE
+	echo "*** Checking code with pylint ***"
+	python3 -m pylint $(DIR_LIB)/*.py --rcfile .pylintrc
+
+test: FORCE
+	echo "*** Checking code with nosetests ***"
+	nosetests
+
+
+#-------------------------------------------------------------------------------
+
+
+# Move old distribution files to archive directory
+archive: FORCE
+	$(info Checking if dist archivation is needed)
+	@if ! [ `ls dist/pynspect* | wc -l` = "0" ]; then\
+		echo "Moving old distribution files to archive";\
+		mv -f dist/pynspect* archive;\
+	fi
+
+# Build various Python package distributions
+bdist: FORCE
+	$(info Building distributions)
+
+	# Build and upload (insecure)
+	#python3 setup.py sdist bdist_wheel upload
+
+	# Build only
+	python3 setup.py sdist bdist_wheel
+
+# Perform installation from local files for Python 3
+install: FORCE
+	$(info Local installation)
+	sudo pip3 install dist/pynspect*.whl --upgrade
+
+# Deploy latest packages to PyPI
+deploy: FORCE
+	$(info PyPI deployment)
+
+	# Secure upload with Twine
+	twine upload dist/*
+
+# Empty rule as dependency wil force make to always perform target
+# Source: https://www.gnu.org/software/make/manual/html_node/Force-Targets.html
+FORCE:

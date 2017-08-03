@@ -1,3 +1,5 @@
+.. _section-api-pynspect-gparser:
+
 pynspect.gparser module
 ================================================================================
 

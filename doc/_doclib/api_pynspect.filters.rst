@@ -1,3 +1,5 @@
+.. _section-api-pynspect-filters:
+
 pynspect.filters module
 ================================================================================
 

@@ -96,13 +96,15 @@ Rule evaluation
 
 """
 
-__version__ = "0.3"
+
 __author__ = "Jan Mach <jan.mach@cesnet.cz>"
 __credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>, Andrea Kropáčová <andrea.kropacova@cesnet.cz>"
+
 
 import collections
 import re
 import datetime
+
 
 class FilteringRuleException(Exception):
     """

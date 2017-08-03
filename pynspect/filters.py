@@ -51,15 +51,17 @@ There are two main tools in this package:
 
 """
 
-__version__ = "0.3"
+
 __author__ = "Jan Mach <jan.mach@cesnet.cz>"
 __credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>, Andrea Kropáčová <andrea.kropacova@cesnet.cz>"
+
 
 import re
 import ipranges
 
 from pynspect.rules import *
 from pynspect.jpath import *
+
 
 class DataObjectFilter(RuleTreeTraverser):
     """

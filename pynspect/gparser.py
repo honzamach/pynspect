@@ -115,15 +115,17 @@ Currently implemented grammar
 
 """
 
-__version__ = "0.3"
+
 __author__ = "Jan Mach <jan.mach@cesnet.cz>"
 __credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>, Andrea Kropáčová <andrea.kropacova@cesnet.cz>"
+
 
 import re, logging
 import ply.yacc
 
 from pynspect.lexer import MentatFilterLexer
 from pynspect.rules import *
+
 
 class MentatFilterParser():
     """

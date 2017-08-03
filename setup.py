@@ -26,7 +26,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name = 'pynspect',
-    version = '0.3',
+    version = '0.5',
     description = 'Python data inspection library',
     long_description = long_description,
     classifiers = [

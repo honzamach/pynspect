@@ -8,4 +8,4 @@
 # Use of this source is governed by the MIT license, see LICENSE file.
 #-------------------------------------------------------------------------------
 
-__version__ = "0.3"
+__version__ = "0.5"

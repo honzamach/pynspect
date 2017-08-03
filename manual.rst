@@ -4,6 +4,14 @@
 Welcome to Pynspect - Python data inspection library's documentation!
 ================================================================================
 
+.. note::
+
+    Please be aware, that this version of documentation is appropriate for:
+
+    * version:      |bversion|
+    * distribution: |codename| (|suite|)
+    * Git revision: |revision|
+
 .. warning::
 
     Although production code is based on this library, it should still be considered

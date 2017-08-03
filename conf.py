@@ -22,10 +22,16 @@
 
 import os
 import sys
+import json
 
-#lib = os.path.abspath(os.path.join(os.path.dirname(__file__), './pynspect'))
-lib = os.path.abspath(os.path.dirname(__file__))
-sys.path.insert(0, lib)
+# -- Load custom metadata ------------------------------------------------------
+
+with open('metadata.json') as json_metadata_file:
+    custom_metadata = json.load(json_metadata_file)
+
+def setup(app):
+    app.add_config_value('build_suite', custom_metadata['suite'], 'env')
+
 
 # -- General configuration ------------------------------------------------
 
@@ -88,6 +94,14 @@ pygments_style = 'sphinx'
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
+
+rst_epilog = """
+.. |codename| replace:: **{codename}**
+.. |suite| replace:: *{suite}*
+.. |bversion| replace:: *{bversion}*
+.. |revision| replace:: ``{revision}``
+.. |bnumber| replace:: *- {bnumber}*
+""".format(**custom_metadata)
 
 
 # -- Options for HTML output ----------------------------------------------

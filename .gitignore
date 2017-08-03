@@ -1,0 +1,16 @@
+!.gitignore
+.directory
+*~
+*.log
+
+# Compiled python modules.
+*.pyc
+
+# Python egg metadata, regenerated from source files by setuptools.
+/*.egg-info
+
+# Package building related folders.
+/archive/pynspect*
+/build/
+/dist/pynspect*
+/doc/_build/

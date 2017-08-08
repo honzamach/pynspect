@@ -105,6 +105,11 @@ import collections
 import re
 import datetime
 
+# for python2 compatibility: conversion of datetime
+import calendar
+
+def py2_timestamp(val):
+    return calendar.timegm(val.timetuple()) + val.microsecond / 1000000.0
 
 class FilteringRuleException(Exception):
     """
@@ -333,7 +338,12 @@ def _to_numeric(val):
     if isinstance(val, int) or isinstance(val, float):
         return val
     if isinstance(val, datetime.datetime):
-        return val.timestamp()
+        try:
+            return val.timestamp()
+        except:
+            # python 2 compatibility
+            return py2_timestamp(val)
+
     return float(val)
 
 class RuleTreeTraverser():

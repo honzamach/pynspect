@@ -350,7 +350,14 @@ class TestMentatDataObjectFilterIDEA(unittest.TestCase):
         self.assertEqual(repr(rule), "MATHBINOP(VARIABLE('DetectTime') OP_PLUS INTEGER(3600))")
         res = cpl.compile(rule)
         self.assertEqual(repr(res), "MATHBINOP(VARIABLE('DetectTime') OP_PLUS INTEGER(3600))")
-        self.assertEqual(flt.filter(rule, msg_idea), 1466510907.0)
+
+        # Be careful about timezones - comparison must not be performed using absolute number:
+        td = (datetime.datetime(2016, 6, 21, 13, 8, 27) + datetime.timedelta(seconds = 3600))
+        try:
+            td_sec = td.timestamp()
+        except:
+            td_sec = py2_timestamp(td)
+        self.assertEqual(flt.filter(rule, msg_idea), td_sec)
 
         rule = psr.parse('(ConnCount + 10) > 11')
         self.assertEqual(repr(rule), "COMPBINOP(MATHBINOP(VARIABLE('ConnCount') OP_PLUS INTEGER(10)) OP_GT INTEGER(11))")

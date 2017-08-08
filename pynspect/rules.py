@@ -455,7 +455,7 @@ class RuleTreeTraverser():
                 r  = _to_numeric(r)
                 result.append(self.binops_math[operation](l, r))
         else:
-            raise FilteringRuleException("Uneven lenth of math operation '{}' operands".format(operation))
+            raise FilteringRuleException("Uneven length of math operation '{}' operands".format(operation))
         return result
 
     def evaluate_binop_math(self, operation, left, right, **kwargs):

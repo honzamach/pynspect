@@ -13,6 +13,10 @@ import shutil
 import unittest
 from pprint import pformat, pprint
 
+# Monkeypatching for Py 2 & 3 compatibility, taken from typedcols package
+if not hasattr(unittest.TestCase, "assertRaisesRegex"):
+    unittest.TestCase.assertRaisesRegex = unittest.TestCase.assertRaisesRegexp
+
 # Generate the path to custom 'lib' directory
 lib = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../lib'))
 sys.path.insert(0, lib)

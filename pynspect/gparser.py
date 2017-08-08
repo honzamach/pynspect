@@ -145,7 +145,9 @@ class MentatFilterParser():
         self.tokens = self.lexer.tokens
 
         self.parser = ply.yacc.yacc(
-            module=self
+            module=self,
+            #debuglog=self.logger,
+            errorlog=self.logger
             #start='statements',
             #debug=yacc_debug,
             #optimize=yacc_optimize,

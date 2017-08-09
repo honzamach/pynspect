@@ -12,7 +12,7 @@
 
 Name:           python-%{pypi_name}
 Version:        %{pypi_version}
-Release:        0%{?dist}
+Release:        3%{?dist}
 Summary:        Python 3 library for filtering, querying or inspecting almost arbitrary data structures
 
 License:        MIT
@@ -28,11 +28,11 @@ consult source code and unit tests.
 %package -n     python2-%{pypi_name}
 Summary:        %{summary}
 %{?python_provide:%python_provide python2-%{pypi_name}}
-Requires:	python2-ipranges
-Requires:	python2-typedcols
-Requires:	python2-idea-format
-Requires:	python2-ply
-BuildRequires:	python2-devel
+Requires:	python-ipranges
+Requires:	python-typedcols
+Requires:	python-idea-format
+Requires:	python-ply
+BuildRequires:	python-devel
 BuildRequires:	python-nose
 BuildRequires:	python-setuptools
 BuildRequires:	python-idea-format

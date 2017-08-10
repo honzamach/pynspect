@@ -18,6 +18,15 @@ from setuptools import setup, find_packages
 from codecs import open
 from os import path
 
+# Generate parsetab.py in advance so it can go into package.
+from pynspect.jpath import *
+from pynspect.rules import *
+from pynspect.gparser import MentatFilterParser
+from pynspect.filters import DataObjectFilter
+
+parser = MentatFilterParser()
+parser.build()
+
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
@@ -47,7 +56,8 @@ setup(
         'nose'
     ],
     install_requires=[
-        'ipranges'
+        'ipranges',
+        'ply'
     ],
     zip_safe = True
 )

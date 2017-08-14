@@ -389,5 +389,12 @@ class TestMentatDataObjectFilterIDEA(unittest.TestCase):
         self.assertEqual(repr(rule), "COMPBINOP(VARIABLE('Source.IP4') OP_IN LIST(IPV4(IP4('188.14.166.39')), IPV4(IP4('188.14.166.40')), IPV4(IP4('188.14.166.41'))))")
         self.assertEqual(flt.filter(rule, msg_idea), True)
 
+        # list with CIDR addresses
+        rule = psr.parse('(Source.IP4 in ["188.14.166.0/24","10.0.0.0/8","189.14.166.41"])')
+        self.assertEqual(repr(rule), "COMPBINOP(VARIABLE('Source.IP4') OP_IN LIST(CONSTANT('188.14.166.0/24'), CONSTANT('10.0.0.0/8'), CONSTANT('189.14.166.41')))")
+        rule = cpl.compile(rule)
+        self.assertEqual(repr(rule), "COMPBINOP(VARIABLE('Source.IP4') OP_IN LIST(IPV4(IP4Net('188.14.166.0/24')), IPV4(IP4Net('10.0.0.0/8')), IPV4(IP4('189.14.166.41'))))")
+        self.assertEqual(flt.filter(rule, msg_idea), True)
+
 if __name__ == '__main__':
     unittest.main()

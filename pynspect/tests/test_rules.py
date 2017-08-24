@@ -24,7 +24,7 @@ from pynspect.rules import *
 # assertion permutations are (IMHO) more readable this way.
 #-------------------------------------------------------------------------------
 
-class TestMentatRules(unittest.TestCase):
+class TestPynspectRules(unittest.TestCase):
 
     def test_01_basic(self):
         """
@@ -71,7 +71,7 @@ class TestMentatRules(unittest.TestCase):
         self.assertEqual(str(rule_unop), "(OP_NOT Test)")
         self.assertEqual(repr(rule_unop), "UNOP(OP_NOT VARIABLE('Test'))")
 
-class TestMentatRuleTreeTraverser(unittest.TestCase):
+class TestPynspectRuleTreeTraverser(unittest.TestCase):
 
     def test_01_evaluate_binops_logical(self):
         """
@@ -325,7 +325,7 @@ class TestMentatRuleTreeTraverser(unittest.TestCase):
         self.assertEqual(traverser.evaluate_binop_math('OP_TIMES',  [10], [10,20]), [100,200])
         self.assertEqual(traverser.evaluate_binop_math('OP_MODULO', [10],   [3,4]), [1,2])
 
-class TestMentatPrintingTreeTraverser(unittest.TestCase):
+class TestPynspectPrintingTreeTraverser(unittest.TestCase):
 
     def test_01_basic(self):
         """

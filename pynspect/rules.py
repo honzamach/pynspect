@@ -101,7 +101,6 @@ __author__ = "Jan Mach <jan.mach@cesnet.cz>"
 __credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>, Andrea Kropáčová <andrea.kropacova@cesnet.cz>"
 
 
-import collections
 import re
 import datetime
 
@@ -506,13 +505,13 @@ class RuleTreeTraverser():
         Master method for evaluating any operation (both unary and binary).
         """
         if operation in self.binops_comparison:
-            return self.evaluate_binop_comparison(rule, *args)
+            return self.evaluate_binop_comparison(operation, *args)
         if operation in self.binops_logical:
-            return self.evaluate_binop_logical(rule, *args)
+            return self.evaluate_binop_logical(operation, *args)
         if operation in self.binops_math:
-            return self.evaluate_binop_math(rule, *args)
+            return self.evaluate_binop_math(operation, *args)
         if operation in self.unops:
-            return self.evaluate_unop(rule, *args)
+            return self.evaluate_unop(operation, *args)
         raise Exception("Invalid operation '{}'".format(operation))
 
 class PrintingTreeTraverser(RuleTreeTraverser):

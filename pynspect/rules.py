@@ -103,6 +103,7 @@ __credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>, Andrea Kropáčová <andrea
 
 import re
 import datetime
+import ipranges
 
 # for python2 compatibility: conversion of datetime
 import calendar
@@ -365,6 +366,20 @@ class RuleTreeTraverser():
     """
     Definitions of all comparison binary operations.
     """
+
+    def __is_ip_list(self, right):
+        for r in right:
+            tr = type(r)
+            if tr is ipranges.IP4Net or tr is ipranges.IP6Net or tr is ipranges.IP4Range or tr is ipranges.IP6Range:
+                return True
+        return False
+
+    def __op_in_iplist(self, left, right):
+        for r in right:
+            if left in r:
+                return True
+        return False
+
     binops_comparison = {
         'OP_LIKE': lambda x, y : re.search(y, x),
         'OP_IN':   lambda x, y : x in y,
@@ -427,10 +442,16 @@ class RuleTreeTraverser():
             if res:
                 return True
         elif operation in ['OP_IN']:
-            for l in left:
-                res = self.binops_comparison[operation](l, right)
-                if res:
-                    return True
+            if not self.__is_ip_list(right):
+                for l in left:
+                    res = self.binops_comparison[operation](l, right)
+                    if res:
+                        return True
+            else:
+                for l in left:
+                    res = self.__op_in_iplist(l, right)
+                    if res:
+                        return True
         else:
             for l in left:
                 if l is None:

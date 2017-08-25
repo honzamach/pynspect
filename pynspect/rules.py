@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #-------------------------------------------------------------------------------
-# This file is part of Mentat system (https://mentat.cesnet.cz/).
+# This file is part of Pynspect project (https://pypi.python.org/pypi/pynspect).
+# Originally part of Mentat system (https://mentat.cesnet.cz/).
 #
-# Copyright (C) since 2011 CESNET, z.s.p.o (http://www.ces.net/)
+# Copyright (C) since 2016 CESNET, z.s.p.o (http://www.ces.net/).
+# Copyright (C) since 2016 Jan Mach <honza.mach.ml@gmail.com>
 # Use of this source is governed by the MIT license, see LICENSE file.
 #-------------------------------------------------------------------------------
+
 
 """
 This module contains implementation of object representations of filtering
@@ -103,13 +106,17 @@ __credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>, Andrea Kropáčová <andrea
 
 import re
 import datetime
-import ipranges
-
-# for python2 compatibility: conversion of datetime
 import calendar
 
+import ipranges
+
+# For python2 compatibility: conversion of datetime.
 def py2_timestamp(val):
+    """
+    Get unix timestamp value out of given datetime object.
+    """
     return calendar.timegm(val.timetuple()) + val.microsecond / 1000000.0
+
 
 class FilteringRuleException(Exception):
     """
@@ -118,9 +125,11 @@ class FilteringRuleException(Exception):
     This exception will be thrown on module specific errors.
     """
     def __init__(self, description):
+        super().__init__()
         self._description = description
     def __str__(self):
         return repr(self._description)
+
 
 class Rule():
     """
@@ -128,11 +137,13 @@ class Rule():
     """
     pass
 
+
 class ValueRule(Rule):
     """
     Base class for all filter tree value rules.
     """
     pass
+
 
 class VariableRule(ValueRule):
     """
@@ -153,6 +164,7 @@ class VariableRule(ValueRule):
     def traverse(self, traverser, **kwargs):
         return traverser.variable(self, **kwargs)
 
+
 class ConstantRule(ValueRule):
     """
     Class for all expression constant values.
@@ -172,6 +184,7 @@ class ConstantRule(ValueRule):
     def traverse(self, traverser, **kwargs):
         return traverser.constant(self, **kwargs)
 
+
 class IPV4Rule(ConstantRule):
     """
     Class for IPv4 address constants.
@@ -184,6 +197,7 @@ class IPV4Rule(ConstantRule):
 
     def traverse(self, traverser, **kwargs):
         return traverser.ipv4(self, **kwargs)
+
 
 class IPV6Rule(ConstantRule):
     """
@@ -198,11 +212,13 @@ class IPV6Rule(ConstantRule):
     def traverse(self, traverser, **kwargs):
         return traverser.ipv6(self, **kwargs)
 
+
 class NumberRule(ConstantRule):
     """
     Base class for all numerical constants.
     """
     pass
+
 
 class IntegerRule(NumberRule):
     """
@@ -217,6 +233,7 @@ class IntegerRule(NumberRule):
     def traverse(self, traverser, **kwargs):
         return traverser.integer(self, **kwargs)
 
+
 class FloatRule(NumberRule):
     """
     Class for float constants.
@@ -229,6 +246,7 @@ class FloatRule(NumberRule):
 
     def traverse(self, traverser, **kwargs):
         return traverser.float(self, **kwargs)
+
 
 class ListRule(ValueRule):
     """
@@ -253,11 +271,13 @@ class ListRule(ValueRule):
     def traverse(self, traverser, **kwargs):
         return traverser.list(self, **kwargs)
 
+
 class OperationRule(Rule):
     """
     Base class for all expression operations (both unary and binary).
     """
     pass
+
 
 class BinaryOperationRule(OperationRule):
     """
@@ -274,6 +294,7 @@ class BinaryOperationRule(OperationRule):
     def __str__(self):
         return "({} {} {})".format(str(self.left), str(self.operation), str(self.right))
 
+
 class LogicalBinOpRule(BinaryOperationRule):
     """
     Base class for all logical binary operations.
@@ -282,9 +303,10 @@ class LogicalBinOpRule(BinaryOperationRule):
         return "LOGBINOP({} {} {})".format(repr(self.left), str(self.operation), repr(self.right))
 
     def traverse(self, traverser, **kwargs):
-        lr = self.left.traverse(traverser, **kwargs)
-        rr = self.right.traverse(traverser, **kwargs)
-        return traverser.binary_operation_logical(self, lr, rr, **kwargs)
+        lrt = self.left.traverse(traverser, **kwargs)
+        rrt = self.right.traverse(traverser, **kwargs)
+        return traverser.binary_operation_logical(self, lrt, rrt, **kwargs)
+
 
 class ComparisonBinOpRule(BinaryOperationRule):
     """
@@ -294,9 +316,10 @@ class ComparisonBinOpRule(BinaryOperationRule):
         return "COMPBINOP({} {} {})".format(repr(self.left), str(self.operation), repr(self.right))
 
     def traverse(self, traverser, **kwargs):
-        lr = self.left.traverse(traverser, **kwargs)
-        rr = self.right.traverse(traverser, **kwargs)
-        return traverser.binary_operation_comparison(self, lr, rr, **kwargs)
+        lrt = self.left.traverse(traverser, **kwargs)
+        rrt = self.right.traverse(traverser, **kwargs)
+        return traverser.binary_operation_comparison(self, lrt, rrt, **kwargs)
+
 
 class MathBinOpRule(BinaryOperationRule):
     """
@@ -306,9 +329,10 @@ class MathBinOpRule(BinaryOperationRule):
         return "MATHBINOP({} {} {})".format(repr(self.left), str(self.operation), repr(self.right))
 
     def traverse(self, traverser, **kwargs):
-        lr = self.left.traverse(traverser, **kwargs)
-        rr = self.right.traverse(traverser, **kwargs)
-        return traverser.binary_operation_math(self, lr, rr, **kwargs)
+        lrt = self.left.traverse(traverser, **kwargs)
+        rrt = self.right.traverse(traverser, **kwargs)
+        return traverser.binary_operation_math(self, lrt, rrt, **kwargs)
+
 
 class UnaryOperationRule(OperationRule):
     """
@@ -328,14 +352,14 @@ class UnaryOperationRule(OperationRule):
         return "UNOP({} {})".format(str(self.operation), repr(self.right))
 
     def traverse(self, traverser, **kwargs):
-        rr = self.right.traverse(traverser, **kwargs)
-        return traverser.unary_operation(self, rr, **kwargs)
+        rrt = self.right.traverse(traverser, **kwargs)
+        return traverser.unary_operation(self, rrt, **kwargs)
 
 def _to_numeric(val):
     """
     Helper function for conversion of various data types into numeric representation.
     """
-    if isinstance(val, int) or isinstance(val, float):
+    if isinstance(val, (int, float)):
         return val
     if isinstance(val, datetime.datetime):
         try:
@@ -346,14 +370,12 @@ def _to_numeric(val):
 
     return float(val)
 
+
 class RuleTreeTraverser():
     """
     Base class for all rule tree traversers.
     """
 
-    """
-    Definitions of all logical binary operations.
-    """
     binops_logical = {
         'OP_OR':    lambda x, y : x or y,
         'OP_XOR':   lambda x, y : (x and not y) or (not x and y),
@@ -362,21 +384,20 @@ class RuleTreeTraverser():
         'OP_XOR_P': lambda x, y : (x and not y) or (not x and y),
         'OP_AND_P': lambda x, y : x and y,
     }
-
     """
-    Definitions of all comparison binary operations.
+    Definitions of all logical binary operations.
     """
 
     def __is_ip_list(self, right):
-        for r in right:
-            tr = type(r)
-            if tr is ipranges.IP4Net or tr is ipranges.IP6Net or tr is ipranges.IP4Range or tr is ipranges.IP6Range:
+        for itemr in right:
+            typer = type(itemr)
+            if typer is ipranges.IP4Net or typer is ipranges.IP6Net or typer is ipranges.IP4Range or typer is ipranges.IP6Range:
                 return True
         return False
 
     def __op_in_iplist(self, left, right):
-        for r in right:
-            if left in r:
+        for itemr in right:
+            if left in itemr:
                 return True
         return False
 
@@ -391,10 +412,10 @@ class RuleTreeTraverser():
         'OP_LT':   lambda x, y : x < y,
         'OP_LE':   lambda x, y : x <= y,
     }
+    """
+    Definitions of all comparison binary operations.
+    """
 
-    """
-    Definitions of all mathematical binary operations.
-    """
     binops_math = {
         'OP_PLUS':   lambda x, y : x + y,
         'OP_MINUS':  lambda x, y : x - y,
@@ -402,14 +423,17 @@ class RuleTreeTraverser():
         'OP_DIVIDE': lambda x, y : x / y,
         'OP_MODULO': lambda x, y : x % y,
     }
+    """
+    Definitions of all mathematical binary operations.
+    """
 
-    """
-    Definitions of all unary operations.
-    """
     unops = {
         'OP_NOT':    lambda x : not x,
         'OP_EXISTS': lambda x : x,
     }
+    """
+    Definitions of all unary operations.
+    """
 
     def evaluate_binop_logical(self, operation, left, right, **kwargs):
         """
@@ -418,10 +442,7 @@ class RuleTreeTraverser():
         if not operation in self.binops_logical:
             raise Exception("Invalid logical binary operation '{}'".format(operation))
         result = self.binops_logical[operation](left, right)
-        if result:
-            return True
-        else:
-            return False
+        return bool(result)
 
     def evaluate_binop_comparison(self, operation, left, right, **kwargs):
         """
@@ -435,7 +456,7 @@ class RuleTreeTraverser():
             left = [left]
         if not isinstance(right, list):
             right = [right]
-        if not len(left) or not len(right):
+        if not left or not right:
             return None
         if operation in ['OP_IS']:
             res = self.binops_comparison[operation](left, right)
@@ -443,47 +464,47 @@ class RuleTreeTraverser():
                 return True
         elif operation in ['OP_IN']:
             if not self.__is_ip_list(right):
-                for l in left:
-                    res = self.binops_comparison[operation](l, right)
+                for iteml in left:
+                    res = self.binops_comparison[operation](iteml, right)
                     if res:
                         return True
             else:
-                for l in left:
-                    res = self.__op_in_iplist(l, right)
+                for iteml in left:
+                    res = self.__op_in_iplist(iteml, right)
                     if res:
                         return True
         else:
-            for l in left:
-                if l is None:
+            for iteml in left:
+                if iteml is None:
                     continue
-                for r in right:
-                    if r is None:
+                for itemr in right:
+                    if itemr is None:
                         continue
-                    res = self.binops_comparison[operation](l, r)
+                    res = self.binops_comparison[operation](iteml, itemr)
                     if res:
                         return True
         return False
 
     def _calculate_vector(self, operation, left, right):
         """
-
+        Calculate vector result from two list operands with given mathematical operation.
         """
         result = []
         if len(right) == 1:
             right = _to_numeric(right[0])
-            for l in left:
-                l  = _to_numeric(l)
-                result.append(self.binops_math[operation](l, right))
+            for iteml in left:
+                iteml = _to_numeric(iteml)
+                result.append(self.binops_math[operation](iteml, right))
         elif len(left) == 1:
             left = _to_numeric(left[0])
-            for r in right:
-                r  = _to_numeric(r)
-                result.append(self.binops_math[operation](left, r))
+            for itemr in right:
+                itemr = _to_numeric(itemr)
+                result.append(self.binops_math[operation](left, itemr))
         elif len(left) == len(right):
-            for l, r in zip(left, right):
-                l  = _to_numeric(l)
-                r  = _to_numeric(r)
-                result.append(self.binops_math[operation](l, r))
+            for iteml, itemr in zip(left, right):
+                iteml = _to_numeric(iteml)
+                itemr = _to_numeric(itemr)
+                result.append(self.binops_math[operation](iteml, itemr))
         else:
             raise FilteringRuleException("Uneven length of math operation '{}' operands".format(operation))
         return result
@@ -500,14 +521,13 @@ class RuleTreeTraverser():
             left = [left]
         if not isinstance(right, list):
             right = [right]
-        if not len(left) or not len(right):
+        if not left or not right:
             return None
         try:
-            v = self._calculate_vector(operation, left, right)
-            if len(v) > 1:
-                return v
-            else:
-                return v[0]
+            vect = self._calculate_vector(operation, left, right)
+            if len(vect) > 1:
+                return vect
+            return vect[0]
         except:
             return None
 
@@ -521,19 +541,20 @@ class RuleTreeTraverser():
             return None
         return self.unops[operation](right)
 
-    def evaluate(self, operation, *args):
-        """
-        Master method for evaluating any operation (both unary and binary).
-        """
-        if operation in self.binops_comparison:
-            return self.evaluate_binop_comparison(operation, *args)
-        if operation in self.binops_logical:
-            return self.evaluate_binop_logical(operation, *args)
-        if operation in self.binops_math:
-            return self.evaluate_binop_math(operation, *args)
-        if operation in self.unops:
-            return self.evaluate_unop(operation, *args)
-        raise Exception("Invalid operation '{}'".format(operation))
+    #def evaluate(self, operation, *args):
+    #    """
+    #    Master method for evaluating any operation (both unary and binary).
+    #    """
+    #    if operation in self.binops_comparison:
+    #        return self.evaluate_binop_comparison(operation, *args)
+    #    if operation in self.binops_logical:
+    #        return self.evaluate_binop_logical(operation, *args)
+    #    if operation in self.binops_math:
+    #        return self.evaluate_binop_math(operation, *args)
+    #    if operation in self.unops:
+    #        return self.evaluate_unop(operation, *args)
+    #    raise Exception("Invalid operation '{}'".format(operation))
+
 
 class PrintingTreeTraverser(RuleTreeTraverser):
     """
@@ -562,49 +583,51 @@ class PrintingTreeTraverser(RuleTreeTraverser):
     def unary_operation(self, rule, right, **kwargs):
         return "UNOP({};{})".format(rule.operation, right)
 
+
+#
+# Perform the demonstration.
+#
 if __name__ == "__main__":
-    """
-    Perform the demonstration.
-    """
+
     print("* Rule usage:")
-    rule_var = VariableRule("Test")
-    print("STR:  {}".format(str(rule_var)))
-    print("REPR: {}".format(repr(rule_var)))
-    rule_const = ConstantRule("constant")
-    print("STR:  {}".format(str(rule_const)))
-    print("REPR: {}".format(repr(rule_const)))
-    rule_ipv4 = IPV4Rule("127.0.0.1")
-    print("STR:  {}".format(str(rule_ipv4)))
-    print("REPR: {}".format(repr(rule_ipv4)))
-    rule_ipv6 = IPV6Rule("::1")
-    print("STR:  {}".format(str(rule_ipv6)))
-    print("REPR: {}".format(repr(rule_ipv6)))
-    rule_integer = IntegerRule(15)
-    print("STR:  {}".format(str(rule_integer)))
-    print("REPR: {}".format(repr(rule_integer)))
-    rule_float = FloatRule(15.5)
-    print("STR:  {}".format(str(rule_float)))
-    print("REPR: {}".format(repr(rule_float)))
-    rule_binop_l = LogicalBinOpRule('OP_OR', rule_var, rule_integer)
-    print("STR:  {}".format(str(rule_binop_l)))
-    print("REPR: {}".format(repr(rule_binop_l)))
-    rule_binop_c = ComparisonBinOpRule('OP_GT', rule_var, rule_integer)
-    print("STR:  {}".format(str(rule_binop_c)))
-    print("REPR: {}".format(repr(rule_binop_c)))
-    rule_binop_m = MathBinOpRule('OP_PLUS', rule_var, rule_integer)
-    print("STR:  {}".format(str(rule_binop_m)))
-    print("REPR: {}".format(repr(rule_binop_m)))
-    rule_binop = LogicalBinOpRule('OP_OR', ComparisonBinOpRule('OP_GT', MathBinOpRule('OP_PLUS', VariableRule("Test"), IntegerRule(10)), IntegerRule(20)), ComparisonBinOpRule('OP_LT', VariableRule("Test"), IntegerRule(5)))
-    print("STR:  {}".format(str(rule_binop)))
-    print("REPR: {}".format(repr(rule_binop)))
-    rule_unop = UnaryOperationRule('OP_NOT', rule_var)
-    print("STR:  {}".format(str(rule_unop)))
-    print("REPR: {}".format(repr(rule_unop)))
+    RULE_VAR = VariableRule("Test")
+    print("STR:  {}".format(str(RULE_VAR)))
+    print("REPR: {}".format(repr(RULE_VAR)))
+    RULE_CONST = ConstantRule("constant")
+    print("STR:  {}".format(str(RULE_CONST)))
+    print("REPR: {}".format(repr(RULE_CONST)))
+    RULE_IPV4 = IPV4Rule("127.0.0.1")
+    print("STR:  {}".format(str(RULE_IPV4)))
+    print("REPR: {}".format(repr(RULE_IPV4)))
+    RULE_IPV6 = IPV6Rule("::1")
+    print("STR:  {}".format(str(RULE_IPV6)))
+    print("REPR: {}".format(repr(RULE_IPV6)))
+    RULE_INTEGER = IntegerRule(15)
+    print("STR:  {}".format(str(RULE_INTEGER)))
+    print("REPR: {}".format(repr(RULE_INTEGER)))
+    RULE_FLOAT = FloatRule(15.5)
+    print("STR:  {}".format(str(RULE_FLOAT)))
+    print("REPR: {}".format(repr(RULE_FLOAT)))
+    RULE_BINOP_L = LogicalBinOpRule('OP_OR', RULE_VAR, RULE_INTEGER)
+    print("STR:  {}".format(str(RULE_BINOP_L)))
+    print("REPR: {}".format(repr(RULE_BINOP_L)))
+    RULE_BINOP_C = ComparisonBinOpRule('OP_GT', RULE_VAR, RULE_INTEGER)
+    print("STR:  {}".format(str(RULE_BINOP_C)))
+    print("REPR: {}".format(repr(RULE_BINOP_C)))
+    RULE_BINOP_M = MathBinOpRule('OP_PLUS', RULE_VAR, RULE_INTEGER)
+    print("STR:  {}".format(str(RULE_BINOP_M)))
+    print("REPR: {}".format(repr(RULE_BINOP_M)))
+    RULE_BINOP = LogicalBinOpRule('OP_OR', ComparisonBinOpRule('OP_GT', MathBinOpRule('OP_PLUS', VariableRule("Test"), IntegerRule(10)), IntegerRule(20)), ComparisonBinOpRule('OP_LT', VariableRule("Test"), IntegerRule(5)))
+    print("STR:  {}".format(str(RULE_BINOP)))
+    print("REPR: {}".format(repr(RULE_BINOP)))
+    RULE_UNOP = UnaryOperationRule('OP_NOT', RULE_VAR)
+    print("STR:  {}".format(str(RULE_UNOP)))
+    print("REPR: {}".format(repr(RULE_UNOP)))
 
     print("\n* Traverser usage:")
-    traverser = PrintingTreeTraverser()
-    print("{}".format(rule_binop_l.traverse(traverser)))
-    print("{}".format(rule_binop_c.traverse(traverser)))
-    print("{}".format(rule_binop_m.traverse(traverser)))
-    print("{}".format(rule_binop.traverse(traverser)))
-    print("{}".format(rule_unop.traverse(traverser)))
+    RULE_TRAVERSER = PrintingTreeTraverser()
+    print("{}".format(RULE_BINOP_L.traverse(RULE_TRAVERSER)))
+    print("{}".format(RULE_BINOP_C.traverse(RULE_TRAVERSER)))
+    print("{}".format(RULE_BINOP_M.traverse(RULE_TRAVERSER)))
+    print("{}".format(RULE_BINOP.traverse(RULE_TRAVERSER)))
+    print("{}".format(RULE_UNOP.traverse(RULE_TRAVERSER)))

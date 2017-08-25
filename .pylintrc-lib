@@ -1,3 +1,12 @@
+#-------------------------------------------------------------------------------
+# This file is part of Pynspect project (https://pypi.python.org/pypi/pynspect).
+# Originally part of Mentat system (https://mentat.cesnet.cz/).
+#
+# Copyright (C) since 2016 CESNET, z.s.p.o (http://www.ces.net/).
+# Copyright (C) since 2016 Jan Mach <honza.mach.ml@gmail.com>
+# Use of this source is governed by the MIT license, see LICENSE file.
+#-------------------------------------------------------------------------------
+
 [MASTER]
 
 # A comma-separated list of package or module names from where C extensions may
@@ -7,7 +16,7 @@ extension-pkg-whitelist=
 
 # Add files or directories to the blacklist. They should be base names, not
 # paths.
-ignore=CVS
+ignore=CVS,parsetab.py
 
 # Add files or directories matching the regex patterns to the blacklist. The
 # regex matches against base names, not paths.

@@ -1,36 +1,43 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #-------------------------------------------------------------------------------
-# This file is part of Mentat system (https://mentat.cesnet.cz/).
+# This file is part of Pynspect project (https://pypi.python.org/pypi/pynspect).
+# Originally part of Mentat system (https://mentat.cesnet.cz/).
 #
-# Copyright (C) since 2011 CESNET, z.s.p.o (http://www.ces.net/)
+# Copyright (C) since 2016 CESNET, z.s.p.o (http://www.ces.net/).
+# Copyright (C) since 2016 Jan Mach <honza.mach.ml@gmail.com>
 # Use of this source is governed by the MIT license, see LICENSE file.
 #-------------------------------------------------------------------------------
 
-import os
-import sys
-import shutil
-import unittest
-from pprint import pformat, pprint
 
-# Generate the path to custom 'lib' directory
-lib = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../lib'))
-sys.path.insert(0, lib)
+"""
+Unit test module for testing the :py:mod:`pynspect.filters` module.
+"""
+
+
+__author__ = "Jan Mach <jan.mach@cesnet.cz>"
+__credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>"
+
+
+import unittest
 
 from idea import lite
-from pynspect.jpath import *
-from pynspect.rules import *
 from pynspect.gparser import MentatFilterParser
-from pynspect.filters import DataObjectFilter, IDEAFilterCompiler, clean_variable
+from pynspect.filters import DataObjectFilter, IDEAFilterCompiler
+
 
 #-------------------------------------------------------------------------------
 # NOTE: Sorry for the long lines in this file. They are deliberate, because the
 # assertion permutations are (IMHO) more readable this way.
 #-------------------------------------------------------------------------------
 
-class TestMentatDataObjectFilterInspector(unittest.TestCase):
 
-    def test_01_current_inspector_filters(self):
+class TestMentatDataObjectFilterInspector(unittest.TestCase):
+    """
+    Unit test class for testing the :py:mod:`pynspect.filters` module.
+    """
+
+    def test_01_inspector_filters(self):
         """
         Perform tests of filters currently used in mentat-inspector.py.
         """
@@ -174,14 +181,17 @@ class TestMentatDataObjectFilterInspector(unittest.TestCase):
             }
         ]
 
-        for ir in inspection_rules:
-            rule = psr.parse(ir['filter'])
+        for insr in inspection_rules:
+            rule = psr.parse(insr['filter'])
             rule = cpl.compile(rule)
-            self.assertEqual(str(rule), ir['str'])
-            if 'tests' in ir:
-                for t in ir['tests']:
-                    msg_idea = lite.Idea(t[0])
-                    self.assertEqual([ir['filter'], flt.filter(rule, msg_idea)], [ir['filter'], t[1]])
+            self.assertEqual(str(rule), insr['str'])
+            if 'tests' in insr:
+                for itemt in insr['tests']:
+                    msg_idea = lite.Idea(itemt[0])
+                    self.assertEqual([insr['filter'], flt.filter(rule, msg_idea)], [insr['filter'], itemt[1]])
+
+
+#-------------------------------------------------------------------------------
 
 
 if __name__ == '__main__':

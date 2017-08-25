@@ -1,34 +1,46 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #-------------------------------------------------------------------------------
-# This file is part of Mentat system (https://mentat.cesnet.cz/).
+# This file is part of Pynspect project (https://pypi.python.org/pypi/pynspect).
+# Originally part of Mentat system (https://mentat.cesnet.cz/).
 #
-# Copyright (C) since 2011 CESNET, z.s.p.o (http://www.ces.net/)
+# Copyright (C) since 2016 CESNET, z.s.p.o (http://www.ces.net/).
+# Copyright (C) since 2016 Jan Mach <honza.mach.ml@gmail.com>
 # Use of this source is governed by the MIT license, see LICENSE file.
 #-------------------------------------------------------------------------------
 
-import os
-import sys
-import shutil
-import unittest
-from pprint import pformat, pprint
 
-# Generate the path to custom 'lib' directory
-lib = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../lib'))
-sys.path.insert(0, lib)
+"""
+Unit test module for testing the :py:mod:`pynspect.filters` module.
+"""
+
+
+__author__ = "Jan Mach <jan.mach@cesnet.cz>"
+__credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>"
+
+
+import datetime
+import unittest
 
 from idea import lite
-from pynspect.jpath import *
-from pynspect.rules import *
+from pynspect.rules import IntegerRule, VariableRule, ConstantRule,\
+    LogicalBinOpRule, UnaryOperationRule, ComparisonBinOpRule, MathBinOpRule, ListRule,\
+    py2_timestamp
 from pynspect.gparser import MentatFilterParser
 from pynspect.filters import DataObjectFilter, IDEAFilterCompiler, clean_variable
+
 
 #-------------------------------------------------------------------------------
 # NOTE: Sorry for the long lines in this file. They are deliberate, because the
 # assertion permutations are (IMHO) more readable this way.
 #-------------------------------------------------------------------------------
 
+
 class TestMentatDataObjectFilterIDEA(unittest.TestCase):
+    """
+    Unit test class for testing the :py:mod:`pynspect.filters` module.
+    """
+
     test_msg1 = {
         "ID" : "e214d2d9-359b-443d-993d-3cc5637107a0",
         "WinEndTime" : "2016-06-21 11:25:01Z",
@@ -284,7 +296,6 @@ class TestMentatDataObjectFilterIDEA(unittest.TestCase):
         self.assertEqual(clean_variable('Target[1].IP4'), 'Target.IP4')
         self.assertEqual(clean_variable('Target[1].IP4[22]'), 'Target.IP4')
 
-        msg_idea = lite.Idea(self.test_msg1)
         cpl = IDEAFilterCompiler()
         psr = MentatFilterParser()
         psr.build()
@@ -352,12 +363,12 @@ class TestMentatDataObjectFilterIDEA(unittest.TestCase):
         self.assertEqual(repr(res), "MATHBINOP(VARIABLE('DetectTime') OP_PLUS INTEGER(3600))")
 
         # Be careful about timezones - comparison must not be performed using absolute number:
-        td = (datetime.datetime(2016, 6, 21, 13, 8, 27) + datetime.timedelta(seconds = 3600))
+        tsd = (datetime.datetime(2016, 6, 21, 13, 8, 27) + datetime.timedelta(seconds = 3600))
         try:
-            td_sec = td.timestamp()
-        except:
-            td_sec = py2_timestamp(td)
-        self.assertEqual(flt.filter(rule, msg_idea), td_sec)
+            tsd_sec = tsd.timestamp()
+        except NameError:
+            tsd_sec = py2_timestamp(tsd)
+        self.assertEqual(flt.filter(rule, msg_idea), tsd_sec)
 
         rule = psr.parse('(ConnCount + 10) > 11')
         self.assertEqual(repr(rule), "COMPBINOP(MATHBINOP(VARIABLE('ConnCount') OP_PLUS INTEGER(10)) OP_GT INTEGER(11))")
@@ -395,6 +406,10 @@ class TestMentatDataObjectFilterIDEA(unittest.TestCase):
         rule = cpl.compile(rule)
         self.assertEqual(repr(rule), "COMPBINOP(VARIABLE('Source.IP4') OP_IN LIST(IPV4(IP4Net('188.14.166.0/24')), IPV4(IP4Net('10.0.0.0/8')), IPV4(IP4('189.14.166.41'))))")
         self.assertEqual(flt.filter(rule, msg_idea), True)
+
+
+#-------------------------------------------------------------------------------
+
 
 if __name__ == '__main__':
     unittest.main()

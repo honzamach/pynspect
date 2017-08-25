@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #-------------------------------------------------------------------------------
-# This file is part of Mentat system (https://mentat.cesnet.cz/).
+# This file is part of Pynspect project (https://pypi.python.org/pypi/pynspect).
+# Originally part of Mentat system (https://mentat.cesnet.cz/).
 #
-# Copyright (C) since 2011 CESNET, z.s.p.o (http://www.ces.net/)
+# Copyright (C) since 2016 CESNET, z.s.p.o (http://www.ces.net/).
+# Copyright (C) since 2016 Jan Mach <honza.mach.ml@gmail.com>
 # Use of this source is governed by the MIT license, see LICENSE file.
 #-------------------------------------------------------------------------------
+
 
 """
 This module provides tools for parsing **JPaths** and setting or retrieving values
@@ -124,7 +127,7 @@ The current implementation has following known drawbacks:
 
 
 __author__ = "Jan Mach <jan.mach@cesnet.cz>"
-__credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>, Andrea Kropáčová <andrea.kropacova@cesnet.cz>"
+__credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>"
 
 
 import re
@@ -135,13 +138,13 @@ import collections
 # Define global constants.
 #
 
-#: Status code for ``success``, returned by function :py:func:`jpath_set`
+#: Status code for ``success``, returned by function :py:func:`jpath_set`.
 RC_VALUE_SET = 0
 
-#: Status code for ``already-exists``, returned by function :py:func:`jpath_set`
+#: Status code for ``already-exists``, returned by function :py:func:`jpath_set`.
 RC_VALUE_EXISTS = 1
 
-#: Status code for ``not-unique``, returned by function :py:func:`jpath_set`
+#: Status code for ``not-unique``, returned by function :py:func:`jpath_set`.
 RC_VALUE_DUPLICATE = 2
 
 #: Regular expression for single JPath chunk.
@@ -158,9 +161,12 @@ class JPathException(Exception):
     This exception will be thrown on module specific errors.
     """
     def __init__(self, description):
+        super().__init__()
         self._description = description
+
     def __str__(self):
         return repr(self._description)
+
 
 def cache_size():
     """
@@ -171,12 +177,14 @@ def cache_size():
     """
     return len(_JPATH_CACHE)
 
+
 def cache_clear():
     """
     Clear internal JPath cache.
     """
     global _JPATH_CACHE
     _JPATH_CACHE = {}
+
 
 def jpath_parse(jpath):
     """
@@ -192,37 +200,38 @@ def jpath_parse(jpath):
     result = []
     breadcrumbs = []
 
-    # Split JPath into chunks based on '.' character
+    # Split JPath into chunks based on '.' character.
     chunks = jpath.split('.')
-    for ch in chunks:
-        match = RE_JPATH_CHUNK.match(ch)
+    for chnk in chunks:
+        match = RE_JPATH_CHUNK.match(chnk)
         if match:
-            r = {}
+            res = {}
 
-            # Record whole match
-            r['m'] = ch
+            # Record whole match.
+            res['m'] = chnk
 
-            # Record breadcrumb path
-            breadcrumbs.append(ch)
-            r['p'] = '.'.join(breadcrumbs)
+            # Record breadcrumb path.
+            breadcrumbs.append(chnk)
+            res['p'] = '.'.join(breadcrumbs)
 
-            # Handle node name
-            r['n'] = match.group(1)
+            # Handle node name.
+            res['n'] = match.group(1)
 
-            # Handle node index (optional, may be omitted)
+            # Handle node index (optional, may be omitted).
             if match.group(2):
-                r['i'] = match.group(3)
-                if str(r['i']) == '#':
-                    r['i'] = -1
-                elif str(r['i']) == '*':
+                res['i'] = match.group(3)
+                if str(res['i']) == '#':
+                    res['i'] = -1
+                elif str(res['i']) == '*':
                     pass
                 else:
-                    r['i'] = int(r['i']) - 1
+                    res['i'] = int(res['i']) - 1
 
-            result.append(r)
+            result.append(res)
         else:
-            raise JPathException("Invalid JPath chunk '{}'".format(ch))
+            raise JPathException("Invalid JPath chunk '{}'".format(chnk))
     return result
+
 
 def jpath_parse_c(jpath):
     """
@@ -237,6 +246,7 @@ def jpath_parse_c(jpath):
         _JPATH_CACHE[jpath] = jpath_parse(jpath)
     return _JPATH_CACHE[jpath]
 
+
 def jpath_values(structure, jpath):
     """
     Return all values at given JPath within given data structure.
@@ -249,50 +259,50 @@ def jpath_values(structure, jpath):
     :return: found values as a list
     :rtype: :py:class:`list`
     """
-    # Current working node set
+    # Current working node set.
     nodes_a = [structure]
 
-    # Next iteration working node set
+    # Next iteration working node set.
     nodes_b = []
 
-    # Process sequentially all JPath chunks
+    # Process sequentially all JPath chunks.
     chunks = jpath_parse_c(jpath)
-    for ch in chunks:
-        # Process all currently active nodes
+    for chnk in chunks:
+        # Process all currently active nodes.
         for node in nodes_a:
-            key = ch['n']
+            key = chnk['n']
             if not isinstance(node, dict) and not isinstance(node, collections.Mapping):
                 continue
 
-            # Process indexed nodes
-            if 'i' in ch:
-                idx = ch['i']
+            # Process indexed nodes.
+            if 'i' in chnk:
+                idx = chnk['i']
                 # Skip the node, if the key does not exist, the value is not
-                # a list-like object or the list is empty
-                if not key in node or not (isinstance(node[key], list) or isinstance(node[key], collections.MutableSequence)) or not len(node[key]):
+                # a list-like object or the list is empty.
+                if not key in node or not (isinstance(node[key], (list, collections.MutableSequence))) or not node[key]:
                     continue
                 try:
-                    # Handle '*' special index - append all nodes
+                    # Handle '*' special index - append all nodes.
                     if str(idx) == '*':
                         for i in node[key]:
                             nodes_b.append(i)
-                    # Append only node at particular index
+                    # Append only node at particular index.
                     else:
                         nodes_b.append(node[key][idx])
                 except:
                     pass
 
-            # Process unindexed nodes
+            # Process unindexed nodes.
             else:
-                # Skip the node, if the key does not exist
+                # Skip the node, if the key does not exist.
                 if not key in node:
                     continue
 
-                # Handle list values - expand them
-                if isinstance(node[key], list) or isinstance(node[key], collections.MutableSequence):
+                # Handle list values - expand them.
+                if isinstance(node[key], (list, collections.MutableSequence)):
                     for i in node[key]:
                         nodes_b.append(i)
-                # Handle scalar values
+                # Handle scalar values.
                 else:
                     nodes_b.append(node[key])
 
@@ -300,6 +310,7 @@ def jpath_values(structure, jpath):
         nodes_b = []
 
     return nodes_a
+
 
 def jpath_value(structure, jpath):
     """
@@ -317,6 +328,7 @@ def jpath_value(structure, jpath):
         return values[0]
     return None
 
+
 def jpath_exists(structure, jpath):
     """
     Check if node at given JPath within given data structure does exist.
@@ -330,6 +342,7 @@ def jpath_exists(structure, jpath):
     if not result is None:
         return True
     return False
+
 
 def jpath_set(structure, jpath, value, overwrite = True, unique = False):
     """
@@ -352,25 +365,25 @@ def jpath_set(structure, jpath, value, overwrite = True, unique = False):
     current = structure
 
     # Process chunks in order, enumeration is used for detection of the last JPath chunk.
-    for i, ch in enumerate(chunks):
-        key = ch['n']
+    for i, chnk in enumerate(chunks):
+        key = chnk['n']
 
         if not isinstance(current, dict) and not isinstance(current, collections.Mapping):
-            raise JPathException("Expected dict-like structure to attach node '{}'".format(ch['p']))
+            raise JPathException("Expected dict-like structure to attach node '{}'".format(chnk['p']))
 
-        # Process indexed nodes
-        if 'i' in ch:
-            idx = ch['i']
+        # Process indexed nodes.
+        if 'i' in chnk:
+            idx = chnk['i']
 
-            # Automatically create nodes for non-existent keys
+            # Automatically create nodes for non-existent keys.
             if not key in current:
                 current[key] = []
             if not isinstance(current[key], list) and not isinstance(current[key], collections.MutableSequence):
                 raise JPathException("Expected list-like object under structure key '{}'".format(key))
 
-            # Detection of the last JPath chunk - node somewhere in the middle
+            # Detection of the last JPath chunk - node somewhere in the middle.
             if i != size:
-                # Attempt to access node at given index
+                # Attempt to access node at given index.
                 try:
                     current = current[key][idx]
                 # IndexError: list index out of range
@@ -383,9 +396,9 @@ def jpath_set(structure, jpath, value, overwrite = True, unique = False):
                     current[key].append({})
                     current = current[key][-1]
 
-            # Detection of the last JPath chunk - node at the end
+            # Detection of the last JPath chunk - node at the end.
             else:
-                # Attempt to insert value at given index
+                # Attempt to insert value at given index.
                 try:
                     if overwrite or not current[key][idx]:
                         current[key][idx] = value
@@ -405,11 +418,11 @@ def jpath_set(structure, jpath, value, overwrite = True, unique = False):
                     else:
                         return RC_VALUE_DUPLICATE
 
-        # Process unindexed nodes
+        # Process unindexed nodes.
         else:
-            # Detection of the last JPath chunk - node somewhere in the middle
+            # Detection of the last JPath chunk - node somewhere in the middle.
             if i != size:
-                # Automatically create nodes for non-existent keys
+                # Automatically create nodes for non-existent keys.
                 if not key in current:
                     current[key] = {}
                 if not isinstance(current[key], dict) and not isinstance(current[key], collections.Mapping):
@@ -417,7 +430,7 @@ def jpath_set(structure, jpath, value, overwrite = True, unique = False):
 
                 current = current[key]
 
-            # Detection of the last JPath chunk - node at the end
+            # Detection of the last JPath chunk - node at the end.
             else:
                 if overwrite or not key in current:
                     current[key] = value
@@ -425,10 +438,12 @@ def jpath_set(structure, jpath, value, overwrite = True, unique = False):
                     return RC_VALUE_EXISTS
     return RC_VALUE_SET
 
+
+#
+# Perform the demonstration.
+#
 if __name__ == "__main__":
-    """
-    Perform the demonstration.
-    """
+
     import pprint
 
     print("Path parsing:")
@@ -446,29 +461,30 @@ if __name__ == "__main__":
     pprint.pprint(jpath_parse("Long.Test.Path[#]"))
 
     print("Path fetching:")
-    msg = {
+    MSG = {
         'TestA': { 'ValueA1': 'A1', 'ValueA2': 'A2' },
         'TestB': { 'ValueB1': 'B1', 'ValueB2': 'B2' },
         'TestC': { 'ValueC1': 'C1', 'ValueC2': 'C2' },
         'TestD': { 'ValueD1': ['D11','D12'], 'ValueC2': 'C2' }
     }
-    pprint.pprint(jpath_values(msg, 'TestD.ValueD1'))
-    pprint.pprint(jpath_values(msg, 'TestD.ValueD1[1]'))
-    pprint.pprint(jpath_values(msg, 'TestD.ValueD1[2]'))
-    pprint.pprint(jpath_values(msg, 'TestD.ValueD1[#]'))
+    pprint.pprint(jpath_values(MSG, 'TestD.ValueD1'))
+    pprint.pprint(jpath_values(MSG, 'TestD.ValueD1[1]'))
+    pprint.pprint(jpath_values(MSG, 'TestD.ValueD1[2]'))
+    pprint.pprint(jpath_values(MSG, 'TestD.ValueD1[#]'))
+    pprint.pprint(MSG)
 
     print("Path seting:")
-    msg = {
+    MSG = {
         'TestA': { 'ValueA1': 'A1', 'ValueA2': 'A2' },
         'TestB': { 'ValueB1': 'B1', 'ValueB2': 'B2' },
         'TestC': { 'ValueC1': 'C1', 'ValueC2': 'C2' },
         'TestD': { 'ValueD1': ['D11','D12'], 'ValueC2': 'C2' }
     }
-    pprint.pprint(jpath_set(msg, 'TestE.ValueE1', "Added value"))
-    pprint.pprint(jpath_set(msg, 'TestE.ValueE2[1]', "Added value 2"))
-    pprint.pprint(jpath_set(msg, 'TestE.ValueE2[2]', "Added value 3"))
-    pprint.pprint(jpath_set(msg, 'TestE.ValueE2[#]', "Added value 4"))
-    pprint.pprint(jpath_set(msg, 'TestE.ValueE3[1].Subval1', "Added subvalue 11"))
-    pprint.pprint(jpath_set(msg, 'TestE.ValueE3[1].Subval2[1]', "Added subval 21"))
-    pprint.pprint(jpath_set(msg, 'TestE.ValueE3[#].Subval2[2]', "Added subval 22"))
-    pprint.pprint(msg)
+    pprint.pprint(jpath_set(MSG, 'TestE.ValueE1', "Added value"))
+    pprint.pprint(jpath_set(MSG, 'TestE.ValueE2[1]', "Added value 2"))
+    pprint.pprint(jpath_set(MSG, 'TestE.ValueE2[2]', "Added value 3"))
+    pprint.pprint(jpath_set(MSG, 'TestE.ValueE2[#]', "Added value 4"))
+    pprint.pprint(jpath_set(MSG, 'TestE.ValueE3[1].Subval1', "Added subvalue 11"))
+    pprint.pprint(jpath_set(MSG, 'TestE.ValueE3[1].Subval2[1]', "Added subval 21"))
+    pprint.pprint(jpath_set(MSG, 'TestE.ValueE3[#].Subval2[2]', "Added subval 22"))
+    pprint.pprint(MSG)

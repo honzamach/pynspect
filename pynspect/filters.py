@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #-------------------------------------------------------------------------------
-# This file is part of Mentat system (https://mentat.cesnet.cz/).
+# This file is part of Pynspect project (https://pypi.python.org/pypi/pynspect).
+# Originally part of Mentat system (https://mentat.cesnet.cz/).
 #
-# Copyright (C) since 2011 CESNET, z.s.p.o (http://www.ces.net/)
+# Copyright (C) since 2016 CESNET, z.s.p.o (http://www.ces.net/).
+# Copyright (C) since 2016 Jan Mach <honza.mach.ml@gmail.com>
 # Use of this source is governed by the MIT license, see LICENSE file.
 #-------------------------------------------------------------------------------
+
 
 """
 This module provides tools for data filtering based on filtering and query
@@ -53,14 +56,16 @@ There are two main tools in this package:
 
 
 __author__ = "Jan Mach <jan.mach@cesnet.cz>"
-__credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>, Andrea Kropáčová <andrea.kropacova@cesnet.cz>"
+__credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>"
 
 
 import re
 import ipranges
 
-from pynspect.rules import *
-from pynspect.jpath import *
+from pynspect.rules import IPV4Rule, IPV6Rule, IntegerRule, FloatRule, NumberRule, VariableRule,\
+    LogicalBinOpRule, UnaryOperationRule, ComparisonBinOpRule, MathBinOpRule, ListRule,\
+    RuleTreeTraverser
+from pynspect.jpath import jpath_values
 
 
 class DataObjectFilter(RuleTreeTraverser):
@@ -125,6 +130,7 @@ class DataObjectFilter(RuleTreeTraverser):
         """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
         return self.evaluate_unop(rule.operation, right, **kwargs)
 
+
 def compile_ip_v4(rule):
     """
     Compiler helper method: attempt to compile constant into object representing
@@ -147,7 +153,7 @@ def compile_ip_v6(rule):
     print("Compiling IPv6 {} to Range object".format(rule.value))
     return IPV6Rule(ipranges.from_str_v6(rule.value))
 
-CVRE = re.compile('\[\d+\]')
+CVRE = re.compile(r'\[\d+\]')
 def clean_variable(var):
     """
     Remove any array indices from variable name to enable indexing into :py:data:`COMPILATIONS`
@@ -158,12 +164,14 @@ def clean_variable(var):
     """
     return CVRE.sub('', var)
 
+
 COMPILATIONS = {
     'Source.IP4': compile_ip_v4,
     'Target.IP4': compile_ip_v4,
     'Source.IP6': compile_ip_v6,
     'Target.IP6': compile_ip_v6,
 }
+
 
 class IDEAFilterCompiler(RuleTreeTraverser):
     """
@@ -192,32 +200,41 @@ class IDEAFilterCompiler(RuleTreeTraverser):
         """
         return rule.traverse(self)
 
+
     #---------------------------------------------------------------------------
+
 
     def ipv4(self, rule, **kwargs):
         """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
         rule = compile_ip_v4(rule)
         return rule
+
     def ipv6(self, rule, **kwargs):
         """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
         rule = compile_ip_v4(rule)
         return rule
+
     def integer(self, rule, **kwargs):
         """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
         rule.value = int(rule.value)
         return rule
+
     def constant(self, rule, **kwargs):
         """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
         return rule
+
     def variable(self, rule, **kwargs):
         """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
         return rule
+
     def list(self, rule, **kwargs):
         """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
         return rule
+
     def binary_operation_logical(self, rule, left, right, **kwargs):
         """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
         return LogicalBinOpRule(rule.operation, left, right)
+
     def binary_operation_comparison(self, rule, left, right, **kwargs):
         """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
         var = val = None
@@ -228,42 +245,44 @@ class IDEAFilterCompiler(RuleTreeTraverser):
             var = right
             val = left
         if var and val:
-            p = clean_variable(var.value)
-            if p in COMPILATIONS.keys():
+            path = clean_variable(var.value)
+            if path in COMPILATIONS.keys():
                 if isinstance(val, ListRule):
                     result = []
-                    for v in val.value:
-                        result.append(COMPILATIONS[p](v))
+                    for itemv in val.value:
+                        result.append(COMPILATIONS[path](itemv))
                     right = ListRule(result)
                 else:
-                    right = COMPILATIONS[p](val)
+                    right = COMPILATIONS[path](val)
         return ComparisonBinOpRule(rule.operation, left, right)
+
     def binary_operation_math(self, rule, left, right, **kwargs):
         """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
         if isinstance(left, IntegerRule) and isinstance(right, IntegerRule):
             result = self.evaluate_binop_math(rule.operation, left.value, right.value)
             if isinstance(result, list):
                 return ListRule([IntegerRule(r) for r in result])
-            else:
-                return IntegerRule(result)
+            return IntegerRule(result)
         elif isinstance(left, NumberRule) and isinstance(right, NumberRule):
             result = self.evaluate_binop_math(rule.operation, left.value, right.value)
             if isinstance(result, list):
                 return ListRule([FloatRule(r) for r in result])
-            else:
-                return FloatRule(result)
+            return FloatRule(result)
         return MathBinOpRule(rule.operation, left, right)
+
     def unary_operation(self, rule, right, **kwargs):
         """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
         return UnaryOperationRule(rule.operation, right)
 
+
+#
+# Perform the demonstration.
+#
 if __name__ == "__main__":
-    """
-    Perform the demonstration.
-    """
+
     import pprint
 
-    data = {"Test": 15, "Attr": "ABC"}
-    rule = ComparisonBinOpRule('OP_GT', VariableRule("Test"), IntegerRule(10))
-    flt = DataObjectFilter()
-    pprint.pprint(flt.filter(rule, data))
+    DEMO_DATA   = {"Test": 15, "Attr": "ABC"}
+    DEMO_RULE   = ComparisonBinOpRule('OP_GT', VariableRule("Test"), IntegerRule(10))
+    DEMO_FILTER = DataObjectFilter()
+    pprint.pprint(DEMO_FILTER.filter(DEMO_RULE, DEMO_DATA))

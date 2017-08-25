@@ -1,10 +1,14 @@
 #-------------------------------------------------------------------------------
 # MASTER MAKEFILE FOR PYNSPECT PACKAGE
 #
-# Copyright (C) since 2016 CESNET, z.s.p.o (http://www.ces.net/)
+# This file is part of Pynspect project (https://pypi.python.org/pypi/pynspect).
+# Originally part of Mentat system (https://mentat.cesnet.cz/).
+#
+# Copyright (C) since 2016 CESNET, z.s.p.o (http://www.ces.net/).
 # Copyright (C) since 2016 Jan Mach <honza.mach.ml@gmail.com>
-# Use of this package is governed by the MIT license, see LICENSE file.
+# Use of this source is governed by the MIT license, see LICENSE file.
 #-------------------------------------------------------------------------------
+
 
 DIR_LIB = pynspect
 

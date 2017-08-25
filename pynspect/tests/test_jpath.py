@@ -1,36 +1,47 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #-------------------------------------------------------------------------------
-# This file is part of Mentat system (https://mentat.cesnet.cz/).
+# This file is part of Pynspect project (https://pypi.python.org/pypi/pynspect).
+# Originally part of Mentat system (https://mentat.cesnet.cz/).
 #
-# Copyright (C) since 2011 CESNET, z.s.p.o (http://www.ces.net/)
+# Copyright (C) since 2016 CESNET, z.s.p.o (http://www.ces.net/).
+# Copyright (C) since 2016 Jan Mach <honza.mach.ml@gmail.com>
 # Use of this source is governed by the MIT license, see LICENSE file.
 #-------------------------------------------------------------------------------
 
-import os
-import sys
-import shutil
-import unittest
-from pprint import pformat, pprint
 
-# Monkeypatching for Py 2 & 3 compatibility, taken from typedcols package
+"""
+Unit test module for testing the :py:mod:`pynspect.jpath` module.
+"""
+
+
+__author__ = "Jan Mach <jan.mach@cesnet.cz>"
+__credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>"
+
+
+import unittest
+
+from idea import lite
+from pynspect.jpath import JPathException, cache_size, cache_clear,\
+    jpath_parse, jpath_parse_c, jpath_exists, jpath_set, jpath_value, jpath_values,\
+    RC_VALUE_DUPLICATE, RC_VALUE_EXISTS, RC_VALUE_SET
+
+
+# Monkeypatching for Py 2 & 3 compatibility, taken from typedcols package.
 if not hasattr(unittest.TestCase, "assertRaisesRegex"):
     unittest.TestCase.assertRaisesRegex = unittest.TestCase.assertRaisesRegexp
 
-# Generate the path to custom 'lib' directory
-lib = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../lib'))
-sys.path.insert(0, lib)
-
-import pynspect.jpath
-from idea import lite
-from pynspect.jpath import *
 
 #-------------------------------------------------------------------------------
 # NOTE: Sorry for the long lines in this file. They are deliberate, because the
 # assertion permutations are (IMHO) more readable this way.
 #-------------------------------------------------------------------------------
 
+
 class TestJPath(unittest.TestCase):
+    """
+    Unit test class for testing the :py:mod:`pynspect.jpath` module.
+    """
 
     msg_dict = {
         "Format": "IDEA0",
@@ -40,15 +51,15 @@ class TestJPath(unittest.TestCase):
         "ConnCount": 633,
         "Description": "Ping scan",
         "Source": [
-                {
-                    "IP4": ["192.168.1.1", "192.168.1.2"],
-                    "Proto": ["icmp"]
-                },
-                {
-                    "IP4": ["192.168.2.1", "192.168.2.2"],
-                    "Proto": ["tcp"]
-                }
-            ],
+            {
+                "IP4": ["192.168.1.1", "192.168.1.2"],
+                "Proto": ["icmp"]
+            },
+            {
+                "IP4": ["192.168.2.1", "192.168.2.2"],
+                "Proto": ["tcp"]
+            }
+        ],
         "Target": [
             {
                 "Proto": ["udp"],
@@ -131,9 +142,9 @@ class TestJPath(unittest.TestCase):
         cache_clear()
         self.assertEqual(cache_size(), 0)
 
-    def test_02_jpath_values(self):
+    def test_02_jpath_values_dict(self):
         """
-        Perform the basic JPath values retrieval tests.
+        Perform the basic JPath values retrieval tests on regular Python dict.
 
         Make sure all possible JPath forms return expected results.
         """
@@ -193,7 +204,34 @@ class TestJPath(unittest.TestCase):
         self.assertEqual(jpath_values(self.msg_dict, 'Source[*].IP4[#]'), ['192.168.1.2','192.168.2.2'])
         self.assertEqual(jpath_values(self.msg_dict, 'Source[*].IP4[*]'), ['192.168.1.1','192.168.1.2','192.168.2.1','192.168.2.2'])
 
-        self.assertEqual(jpath_values(self.msg_idea, 'Format'),          ['IDEA0'])
+    def test_03_jpath_values_idea(self):
+        """
+        Perform the basic JPath values retrieval tests on :py:mod:`idea.lite` object.
+
+        Make sure all possible JPath forms return expected results.
+        """
+        self.maxDiff = None
+
+        self.assertEqual(jpath_values(self.msg_idea, 'Format'),    ['IDEA0'])
+        self.assertEqual(jpath_values(self.msg_idea, 'Format[1]'), [])
+        self.assertEqual(jpath_values(self.msg_idea, 'Format[#]'), [])
+        self.assertEqual(jpath_values(self.msg_idea, 'Format[*]'), [])
+
+        self.assertEqual(jpath_values(self.msg_idea, 'Category'),    ['CATEGORY'])
+        self.assertEqual(jpath_values(self.msg_idea, 'Category[1]'), ['CATEGORY'])
+        self.assertEqual(jpath_values(self.msg_idea, 'Category[2]'), [])
+        self.assertEqual(jpath_values(self.msg_idea, 'Category[#]'), ['CATEGORY'])
+        self.assertEqual(jpath_values(self.msg_idea, 'Category[*]'), ['CATEGORY'])
+
+        self.assertEqual(jpath_values(self.msg_idea, 'Node.SW'),       ['KIPPO','FAIL_TO_BAN'])
+        self.assertEqual(jpath_values(self.msg_idea, 'Node[1].SW'),    ['KIPPO','FAIL_TO_BAN'])
+        self.assertEqual(jpath_values(self.msg_idea, 'Node[#].SW'),    ['KIPPO','FAIL_TO_BAN'])
+        self.assertEqual(jpath_values(self.msg_idea, 'Node[*].SW'),    ['KIPPO','FAIL_TO_BAN'])
+        self.assertEqual(jpath_values(self.msg_idea, 'Node[#].SW[1]'), ['KIPPO'])
+        self.assertEqual(jpath_values(self.msg_idea, 'Node[#].SW[2]'), ['FAIL_TO_BAN'])
+        self.assertEqual(jpath_values(self.msg_idea, 'Node[#].SW[#]'), ['FAIL_TO_BAN'])
+        self.assertEqual(jpath_values(self.msg_idea, 'Node[#].SW[*]'), ['KIPPO','FAIL_TO_BAN'])
+
         self.assertEqual(jpath_values(self.msg_idea, 'Node.Name'),       ['node.name'])
         self.assertEqual(jpath_values(self.msg_idea, 'Node[1].Name'),    ['node.name'])
         self.assertEqual(jpath_values(self.msg_idea, 'Node[#].Name'),    ['node.name'])
@@ -201,18 +239,11 @@ class TestJPath(unittest.TestCase):
         self.assertEqual(jpath_values(self.msg_idea, 'Node[1].Name[1]'), [])
         self.assertEqual(jpath_values(self.msg_idea, 'Node[#].Name[#]'), [])
         self.assertEqual(jpath_values(self.msg_idea, 'Node[*].Name[*]'), [])
-        self.assertEqual(jpath_values(self.msg_idea, 'Node.SW'),         ['KIPPO','FAIL_TO_BAN'])
-        self.assertEqual(jpath_values(self.msg_idea, 'Node[1].SW'),      ['KIPPO','FAIL_TO_BAN'])
-        self.assertEqual(jpath_values(self.msg_idea, 'Node[#].SW'),      ['KIPPO','FAIL_TO_BAN'])
-        self.assertEqual(jpath_values(self.msg_idea, 'Node[*].SW'),      ['KIPPO','FAIL_TO_BAN'])
-        self.assertEqual(jpath_values(self.msg_idea, 'Node[#].SW[1]'),   ['KIPPO'])
-        self.assertEqual(jpath_values(self.msg_idea, 'Node[#].SW[2]'),   ['FAIL_TO_BAN'])
-        self.assertEqual(jpath_values(self.msg_idea, 'Node[#].SW[#]'),   ['FAIL_TO_BAN'])
-        self.assertEqual(jpath_values(self.msg_idea, 'Node[#].SW[*]'),   ['KIPPO','FAIL_TO_BAN'])
 
-    def test_03_jpath_value(self):
+
+    def test_04_jpath_value_dict(self):
         """
-        Perform the basic JPath value retrieval tests.
+        Perform the basic JPath value retrieval tests on regular Python dict.
 
         Make sure all possible JPath forms return expected results.
         """
@@ -272,7 +303,35 @@ class TestJPath(unittest.TestCase):
         self.assertEqual(jpath_value(self.msg_dict, 'Source[*].IP4[#]'), '192.168.1.2')
         self.assertEqual(jpath_value(self.msg_dict, 'Source[*].IP4[*]'), '192.168.1.1')
 
-        self.assertEqual(jpath_value(self.msg_idea, 'Format'),          'IDEA0')
+
+    def test_05_jpath_value_idea(self):
+        """
+        Perform the basic JPath value retrieval tests on :py:mod:`idea.lite` object.
+
+        Make sure all possible JPath forms return expected results.
+        """
+        self.maxDiff = None
+
+        self.assertEqual(jpath_value(self.msg_idea, 'Format'),    'IDEA0')
+        self.assertEqual(jpath_value(self.msg_idea, 'Format[1]'), None)
+        self.assertEqual(jpath_value(self.msg_idea, 'Format[#]'), None)
+        self.assertEqual(jpath_value(self.msg_idea, 'Format[*]'), None)
+
+        self.assertEqual(jpath_value(self.msg_idea, 'Category'),    'CATEGORY')
+        self.assertEqual(jpath_value(self.msg_idea, 'Category[1]'), 'CATEGORY')
+        self.assertEqual(jpath_value(self.msg_idea, 'Category[2]'), None)
+        self.assertEqual(jpath_value(self.msg_idea, 'Category[#]'), 'CATEGORY')
+        self.assertEqual(jpath_value(self.msg_idea, 'Category[*]'), 'CATEGORY')
+
+        self.assertEqual(jpath_value(self.msg_idea, 'Node.SW'),       'KIPPO')
+        self.assertEqual(jpath_value(self.msg_idea, 'Node[1].SW'),    'KIPPO')
+        self.assertEqual(jpath_value(self.msg_idea, 'Node[#].SW'),    'KIPPO')
+        self.assertEqual(jpath_value(self.msg_idea, 'Node[*].SW'),    'KIPPO')
+        self.assertEqual(jpath_value(self.msg_idea, 'Node[#].SW[1]'), 'KIPPO')
+        self.assertEqual(jpath_value(self.msg_idea, 'Node[#].SW[2]'), 'FAIL_TO_BAN')
+        self.assertEqual(jpath_value(self.msg_idea, 'Node[#].SW[#]'), 'FAIL_TO_BAN')
+        self.assertEqual(jpath_value(self.msg_idea, 'Node[#].SW[*]'), 'KIPPO')
+
         self.assertEqual(jpath_value(self.msg_idea, 'Node.Name'),       'node.name')
         self.assertEqual(jpath_value(self.msg_idea, 'Node[1].Name'),    'node.name')
         self.assertEqual(jpath_value(self.msg_idea, 'Node[#].Name'),    'node.name')
@@ -280,18 +339,11 @@ class TestJPath(unittest.TestCase):
         self.assertEqual(jpath_value(self.msg_idea, 'Node[1].Name[1]'), None)
         self.assertEqual(jpath_value(self.msg_idea, 'Node[#].Name[#]'), None)
         self.assertEqual(jpath_value(self.msg_idea, 'Node[*].Name[*]'), None)
-        self.assertEqual(jpath_value(self.msg_idea, 'Node.SW'),         'KIPPO')
-        self.assertEqual(jpath_value(self.msg_idea, 'Node[1].SW'),      'KIPPO')
-        self.assertEqual(jpath_value(self.msg_idea, 'Node[#].SW'),      'KIPPO')
-        self.assertEqual(jpath_value(self.msg_idea, 'Node[*].SW'),      'KIPPO')
-        self.assertEqual(jpath_value(self.msg_idea, 'Node[#].SW[1]'),   'KIPPO')
-        self.assertEqual(jpath_value(self.msg_idea, 'Node[#].SW[2]'),   'FAIL_TO_BAN')
-        self.assertEqual(jpath_value(self.msg_idea, 'Node[#].SW[#]'),   'FAIL_TO_BAN')
-        self.assertEqual(jpath_value(self.msg_idea, 'Node[#].SW[*]'),   'KIPPO')
 
-    def test_04_jpath_exists(self):
+
+    def test_06_jpath_exists_dict(self):
         """
-        Perform the basic JPath elements existence tests.
+        Perform the basic JPath elements existence tests on regular Python dict.
 
         Make sure all possible JPath forms return expected results.
         """
@@ -351,7 +403,35 @@ class TestJPath(unittest.TestCase):
         self.assertEqual(jpath_exists(self.msg_dict, 'Source[*].IP4[#]'), True)
         self.assertEqual(jpath_exists(self.msg_dict, 'Source[*].IP4[*]'), True)
 
-        self.assertEqual(jpath_exists(self.msg_idea, 'Format'),          True)
+
+    def test_07_jpath_exists_idea(self):
+        """
+        Perform the basic JPath elements existence tests on :py:mod:`idea.lite` object.
+
+        Make sure all possible JPath forms return expected results.
+        """
+        self.maxDiff = None
+
+        self.assertEqual(jpath_exists(self.msg_idea, 'Format'),    True)
+        self.assertEqual(jpath_exists(self.msg_idea, 'Format[1]'), False)
+        self.assertEqual(jpath_exists(self.msg_idea, 'Format[#]'), False)
+        self.assertEqual(jpath_exists(self.msg_idea, 'Format[*]'), False)
+
+        self.assertEqual(jpath_exists(self.msg_idea, 'Category'),    True)
+        self.assertEqual(jpath_exists(self.msg_idea, 'Category[1]'), True)
+        self.assertEqual(jpath_exists(self.msg_idea, 'Category[2]'), False)
+        self.assertEqual(jpath_exists(self.msg_idea, 'Category[#]'), True)
+        self.assertEqual(jpath_exists(self.msg_idea, 'Category[*]'), True)
+
+        self.assertEqual(jpath_exists(self.msg_idea, 'Node.SW'),       True)
+        self.assertEqual(jpath_exists(self.msg_idea, 'Node[1].SW'),    True)
+        self.assertEqual(jpath_exists(self.msg_idea, 'Node[#].SW'),    True)
+        self.assertEqual(jpath_exists(self.msg_idea, 'Node[*].SW'),    True)
+        self.assertEqual(jpath_exists(self.msg_idea, 'Node[#].SW[1]'), True)
+        self.assertEqual(jpath_exists(self.msg_idea, 'Node[#].SW[2]'), True)
+        self.assertEqual(jpath_exists(self.msg_idea, 'Node[#].SW[#]'), True)
+        self.assertEqual(jpath_exists(self.msg_idea, 'Node[#].SW[*]'), True)
+
         self.assertEqual(jpath_exists(self.msg_idea, 'Node.Name'),       True)
         self.assertEqual(jpath_exists(self.msg_idea, 'Node[1].Name'),    True)
         self.assertEqual(jpath_exists(self.msg_idea, 'Node[#].Name'),    True)
@@ -359,16 +439,9 @@ class TestJPath(unittest.TestCase):
         self.assertEqual(jpath_exists(self.msg_idea, 'Node[1].Name[1]'), False)
         self.assertEqual(jpath_exists(self.msg_idea, 'Node[#].Name[#]'), False)
         self.assertEqual(jpath_exists(self.msg_idea, 'Node[*].Name[*]'), False)
-        self.assertEqual(jpath_exists(self.msg_idea, 'Node.SW'),         True)
-        self.assertEqual(jpath_exists(self.msg_idea, 'Node[1].SW'),      True)
-        self.assertEqual(jpath_exists(self.msg_idea, 'Node[#].SW'),      True)
-        self.assertEqual(jpath_exists(self.msg_idea, 'Node[*].SW'),      True)
-        self.assertEqual(jpath_exists(self.msg_idea, 'Node[#].SW[1]'),   True)
-        self.assertEqual(jpath_exists(self.msg_idea, 'Node[#].SW[2]'),   True)
-        self.assertEqual(jpath_exists(self.msg_idea, 'Node[#].SW[#]'),   True)
-        self.assertEqual(jpath_exists(self.msg_idea, 'Node[#].SW[*]'),   True)
 
-    def test_05_jpath_set(self):
+
+    def test_08_jpath_set(self):
         """
         Perform the basic JPath value setting tests.
         """
@@ -377,58 +450,58 @@ class TestJPath(unittest.TestCase):
         msg = {}
         self.assertEqual(jpath_set(msg, 'TestA.ValueA1', 'A1'), RC_VALUE_SET)
         self.assertEqual(
-                msg,
-                {
-                    'TestA': { 'ValueA1': 'A1'}
-                }
-            )
+            msg,
+            {
+                'TestA': { 'ValueA1': 'A1'}
+            }
+        )
         self.assertEqual(jpath_set(msg, 'TestA.ValueA2', 'A2'), RC_VALUE_SET)
         self.assertEqual(
-                msg,
-                {
-                    'TestA': { 'ValueA1': 'A1', 'ValueA2': 'A2' }
-                }
-            )
+            msg,
+            {
+                'TestA': { 'ValueA1': 'A1', 'ValueA2': 'A2' }
+            }
+        )
         self.assertEqual(jpath_set(msg, 'TestB[1].ValueB1', 'B1'), RC_VALUE_SET)
         self.assertEqual(
-                msg,
-                {
-                    'TestA': { 'ValueA1': 'A1', 'ValueA2': 'A2' },
-                    'TestB': [{ 'ValueB1': 'B1' }]
-                }
-            )
+            msg,
+            {
+                'TestA': { 'ValueA1': 'A1', 'ValueA2': 'A2' },
+                'TestB': [{ 'ValueB1': 'B1' }]
+            }
+        )
         self.assertEqual(jpath_set(msg, 'TestB[#].ValueB2', 'B2'), RC_VALUE_SET)
         self.assertEqual(
-                msg,
-                {
-                    'TestA': { 'ValueA1': 'A1', 'ValueA2': 'A2' },
-                    'TestB': [{ 'ValueB1': 'B1', 'ValueB2': 'B2' }]
-                }
-            )
+            msg,
+            {
+                'TestA': { 'ValueA1': 'A1', 'ValueA2': 'A2' },
+                'TestB': [{ 'ValueB1': 'B1', 'ValueB2': 'B2' }]
+            }
+        )
         self.assertEqual(jpath_set(msg, 'TestB[*].ValueB3', 'B3'), RC_VALUE_SET)
         self.assertEqual(
-                msg,
-                {
-                    'TestA': { 'ValueA1': 'A1', 'ValueA2': 'A2' },
-                    'TestB': [{ 'ValueB1': 'B1', 'ValueB2': 'B2' }, { 'ValueB3': 'B3' }]
-                }
-            )
+            msg,
+            {
+                'TestA': { 'ValueA1': 'A1', 'ValueA2': 'A2' },
+                'TestB': [{ 'ValueB1': 'B1', 'ValueB2': 'B2' }, { 'ValueB3': 'B3' }]
+            }
+        )
         self.assertEqual(jpath_set(msg, 'TestB[#].ValueB4', 'B4'), RC_VALUE_SET)
         self.assertEqual(
-                msg,
-                {
-                    'TestA': { 'ValueA1': 'A1', 'ValueA2': 'A2' },
-                    'TestB': [{ 'ValueB1': 'B1', 'ValueB2': 'B2' }, { 'ValueB3': 'B3', 'ValueB4': 'B4' }]
-                }
-            )
+            msg,
+            {
+                'TestA': { 'ValueA1': 'A1', 'ValueA2': 'A2' },
+                'TestB': [{ 'ValueB1': 'B1', 'ValueB2': 'B2' }, { 'ValueB3': 'B3', 'ValueB4': 'B4' }]
+            }
+        )
         self.assertEqual(jpath_set(msg, 'TestB[#]', 'DROP'), RC_VALUE_SET)
         self.assertEqual(
-                msg,
-                {
-                    'TestA': { 'ValueA1': 'A1', 'ValueA2': 'A2' },
-                    'TestB': [{ 'ValueB1': 'B1', 'ValueB2': 'B2' }, "DROP"]
-                }
-            )
+            msg,
+            {
+                'TestA': { 'ValueA1': 'A1', 'ValueA2': 'A2' },
+                'TestB': [{ 'ValueB1': 'B1', 'ValueB2': 'B2' }, "DROP"]
+            }
+        )
 
         # This will fail, because "TestA" node is not a list
         self.assertRaisesRegex(JPathException, "Expected list-like object under structure key", jpath_set, msg, 'TestA[#].ValueC1', 'C1')
@@ -439,7 +512,8 @@ class TestJPath(unittest.TestCase):
         # This will fail, because we try to attach a node to scalar "TestB[#]"
         self.assertRaisesRegex(JPathException, "Expected dict-like structure to attach node", jpath_set, msg, 'TestB[#].ValueB5', 'RAISE EXCEPTION')
 
-    def test_06_jpath_set_unique(self):
+
+    def test_09_jpath_set_unique(self):
         """
         Perform JPath value setting tests with unique flag.
         """
@@ -448,27 +522,28 @@ class TestJPath(unittest.TestCase):
         msg = {}
         self.assertEqual(jpath_set(msg, 'TestC[#].ListVals1[*]', 'LV1', unique = True), RC_VALUE_SET)
         self.assertEqual(
-                msg,
-                {
-                    'TestC': [{ 'ListVals1': ['LV1']}]
-                }
-            )
+            msg,
+            {
+                'TestC': [{ 'ListVals1': ['LV1']}]
+            }
+        )
         self.assertEqual(jpath_set(msg, 'TestC[#].ListVals1[*]', 'LV2', unique = True), RC_VALUE_SET)
         self.assertEqual(
-                msg,
-                {
-                    'TestC': [{ 'ListVals1': ['LV1','LV2']}]
-                }
-            )
+            msg,
+            {
+                'TestC': [{ 'ListVals1': ['LV1','LV2']}]
+            }
+        )
         self.assertEqual(jpath_set(msg, 'TestC[#].ListVals1[*]', 'LV1', unique = True), RC_VALUE_DUPLICATE)
         self.assertEqual(
-                msg,
-                {
-                    'TestC': [{ 'ListVals1': ['LV1','LV2']}]
-                }
-            )
+            msg,
+            {
+                'TestC': [{ 'ListVals1': ['LV1','LV2']}]
+            }
+        )
 
-    def test_07_jpath_set_overwrite(self):
+
+    def test_10_jpath_set_overwrite(self):
         """
         Perform JPath value setting tests with overwrite flag.
         """
@@ -481,50 +556,53 @@ class TestJPath(unittest.TestCase):
         #
         self.assertEqual(jpath_set(msg, 'TestD[#].ListVals1[*]', 'LV1', overwrite = False), RC_VALUE_SET)
         self.assertEqual(
-                msg,
-                {
-                    'TestD': [{ 'ListVals1': ['LV1']}]
-                }
-            )
+            msg,
+            {
+                'TestD': [{ 'ListVals1': ['LV1']}]
+            }
+        )
         self.assertEqual(jpath_set(msg, 'TestD[#].ListVals1[*]', 'LV2', overwrite = False), RC_VALUE_SET)
         self.assertEqual(
-                msg,
-                {
-                    'TestD': [{ 'ListVals1': ['LV1','LV2']}]
-                }
-            )
+            msg,
+            {
+                'TestD': [{ 'ListVals1': ['LV1','LV2']}]
+            }
+        )
         self.assertEqual(jpath_set(msg, 'TestD[#].ListVals1[2]', 'LV3', overwrite = False), RC_VALUE_EXISTS)
         self.assertEqual(
-                msg,
-                {
-                    'TestD': [{ 'ListVals1': ['LV1','LV2']}]
-                }
-            )
+            msg,
+            {
+                'TestD': [{ 'ListVals1': ['LV1','LV2']}]
+            }
+        )
         self.assertEqual(jpath_set(msg, 'TestD[#].ListVals1[3]', 'LV3', overwrite = False), RC_VALUE_SET)
         self.assertEqual(
-                msg,
-                {
-                    'TestD': [{ 'ListVals1': ['LV1','LV2','LV3']}]
-                }
-            )
+            msg,
+            {
+                'TestD': [{ 'ListVals1': ['LV1','LV2','LV3']}]
+            }
+        )
 
         #
         # Overwriting in dicts.
         #
         self.assertEqual(jpath_set(msg, 'TestD[#].DictVal', 'DV1', overwrite = False), RC_VALUE_SET)
         self.assertEqual(
-                msg,
-                {
-                    'TestD': [{ 'ListVals1': ['LV1','LV2','LV3'], 'DictVal': 'DV1' }]
-                }
-            )
+            msg,
+            {
+                'TestD': [{ 'ListVals1': ['LV1','LV2','LV3'], 'DictVal': 'DV1' }]
+            }
+        )
         self.assertEqual(jpath_set(msg, 'TestD[#].DictVal', 'DV2', overwrite = False), RC_VALUE_EXISTS)
         self.assertEqual(
-                msg,
-                {
-                    'TestD': [{ 'ListVals1': ['LV1','LV2','LV3'], 'DictVal': 'DV1' }]
-                }
-            )
+            msg,
+            {
+                'TestD': [{ 'ListVals1': ['LV1','LV2','LV3'], 'DictVal': 'DV1' }]
+            }
+        )
+
+
+#-------------------------------------------------------------------------------
 
 
 if __name__ == "__main__":

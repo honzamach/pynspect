@@ -1,29 +1,35 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #-------------------------------------------------------------------------------
-# This file is part of Mentat system (https://mentat.cesnet.cz/).
+# This file is part of Pynspect project (https://pypi.python.org/pypi/pynspect).
+# Originally part of Mentat system (https://mentat.cesnet.cz/).
 #
-# Copyright (C) since 2011 CESNET, z.s.p.o (http://www.ces.net/)
+# Copyright (C) since 2016 CESNET, z.s.p.o (http://www.ces.net/).
+# Copyright (C) since 2016 Jan Mach <honza.mach.ml@gmail.com>
 # Use of this source is governed by the MIT license, see LICENSE file.
 #-------------------------------------------------------------------------------
 
-import os
-import sys
-import shutil
+
+"""
+Benchmarking module for the :py:mod:`pynspect.jpath` module.
+"""
+
+
+__author__ = "Jan Mach <jan.mach@cesnet.cz>"
+__credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>"
+
+
 import random
 import string
 import timeit
-from pprint import pformat, pprint
 
-# Generate the path to custom 'lib' directory
-lib = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../lib'))
-sys.path.insert(0, lib)
+from pynspect.jpath import jpath_parse, jpath_parse_c
 
-from pynspect.jpath import *
 
 #-------------------------------------------------------------------------------
 # HELPER FUNCTIONS
 #-------------------------------------------------------------------------------
+
 
 def random_jpath(depth = 3):
     """
@@ -43,9 +49,11 @@ def random_jpath(depth = 3):
 RANDOM_JPATHS = [random_jpath(random.randint(1,5)) for i in range(50)]
 """Pregenerated list of random JPaths."""
 
+
 #-------------------------------------------------------------------------------
 # BENCHMARK TESTS
 #-------------------------------------------------------------------------------
+
 
 b001 = jpath_parse
 b002 = jpath_parse_c
@@ -58,83 +66,87 @@ def b004():
     jpath = random.choice(RANDOM_JPATHS)
     return jpath_parse_c(jpath)
 
+
 #-------------------------------------------------------------------------------
 
+
+#
+# Performance benchmarking of :py:mod:`pynspect.jpath` module.
+#
 if __name__ == "__main__":
-    """
-    Performance benchmarking of :py:mod:`pynspect.jpath` module.
-    """
 
     print("\n BENCHMARKING MENTAT.FILTERING.JPATH MODULE\n")
 
     print("=" * 84)
     print(" {:22s} | {:16s} | {:20s} | {:20s}".format(
-            "Name",
-            "Iterations (#)",
-            "Duration (s)",
-            "Speed (#/s)"))
+        "Name",
+        "Iterations (#)",
+        "Duration (s)",
+        "Speed (#/s)"))
     print("=" * 84)
-    format_ptrn = " {:22s} | {:16,d} | {:20.10f} | {:15,.3f}"
+    FORMAT_PTRN = " {:22s} | {:16,d} | {:20.10f} | {:15,.3f}"
 
     #---------------------------------------------------------------------------
 
-    iterations = 1000000
+    ITERATIONS = 1000000
 
-    """
-    Parsing of single reasonably complex JPath without caching.
-    """
-    result = timeit.timeit('b001("Long[*].Test.Path[*]")', number = iterations, setup = "from __main__ import b001")
-    speed = iterations / result
+    #
+    # Parsing of single reasonably complex JPath without caching.
+    #
+    RESULT = timeit.timeit('b001("Long[*].Test.Path[*]")', number = ITERATIONS, setup = "from __main__ import b001")
+    SPEED = ITERATIONS / RESULT
     print(
-        format_ptrn.format(
+        FORMAT_PTRN.format(
             "jpath_parse",
-            iterations,
-            result,
-            speed
+            ITERATIONS,
+            RESULT,
+            SPEED
         )
     )
-    """
-    Parsing of single reasonably complex JPath with caching.
-    """
-    result = timeit.timeit('b002("Long[*].Test.Path[*]")', number = iterations, setup = "from __main__ import b002")
-    speed = iterations / result
+
+    #
+    # Parsing of single reasonably complex JPath with caching.
+    #
+    RESULT = timeit.timeit('b002("Long[*].Test.Path[*]")', number = ITERATIONS, setup = "from __main__ import b002")
+    SPEED = ITERATIONS / RESULT
     print(
-        format_ptrn.format(
+        FORMAT_PTRN.format(
             "jpath_parse_c",
-            iterations,
-            result,
-            speed
+            ITERATIONS,
+            RESULT,
+            SPEED
         )
     )
 
     #---------------------------------------------------------------------------
 
-    iterations = 1000000
+    ITERATIONS = 1000000
 
-    """
-    Parsing of random reasonably complex JPath without caching.
-    """
-    result = timeit.timeit('b003()', number = iterations, setup = "from __main__ import b003")
-    speed = iterations / result
+    #
+    # Parsing of random reasonably complex JPath without caching.
+    #
+    RESULT = timeit.timeit('b003()', number = ITERATIONS, setup = "from __main__ import b003")
+    SPEED = ITERATIONS / RESULT
     print(
-        format_ptrn.format(
+        FORMAT_PTRN.format(
             "jpath_parse (random)",
-            iterations,
-            result,
-            speed
+            ITERATIONS,
+            RESULT,
+            SPEED
         )
     )
-    """
-    Parsing of random reasonably complex JPath with caching.
-    """
-    result = timeit.timeit('b004()', number = iterations, setup = "from __main__ import b004")
-    speed = iterations / result
+
+    #
+    # Parsing of random reasonably complex JPath with caching.
+    #
+    RESULT = timeit.timeit('b004()', number = ITERATIONS, setup = "from __main__ import b004")
+    SPEED = ITERATIONS / RESULT
     print(
-        format_ptrn.format(
+        FORMAT_PTRN.format(
             "jpath_parse_c (random)",
-            iterations,
-            result,
-            speed
+            ITERATIONS,
+            RESULT,
+            SPEED
         )
     )
 

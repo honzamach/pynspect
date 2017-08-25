@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #-------------------------------------------------------------------------------
-# This file is part of Mentat system (https://mentat.cesnet.cz/).
+# This file is part of Pynspect project (https://pypi.python.org/pypi/pynspect).
+# Originally part of Mentat system (https://mentat.cesnet.cz/).
 #
-# Copyright (C) since 2011 CESNET, z.s.p.o (http://www.ces.net/)
+# Copyright (C) since 2016 CESNET, z.s.p.o (http://www.ces.net/).
+# Copyright (C) since 2016 Jan Mach <honza.mach.ml@gmail.com>
 # Use of this source is governed by the MIT license, see LICENSE file.
 #-------------------------------------------------------------------------------
+
 
 """
 This module contains object encapsulation of `PLY <http://www.dabeaz.com/ply/>`__
@@ -117,14 +120,15 @@ Currently implemented grammar
 
 
 __author__ = "Jan Mach <jan.mach@cesnet.cz>"
-__credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>, Andrea Kropáčová <andrea.kropacova@cesnet.cz>"
+__credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>"
 
 
 import logging
 import ply.yacc
 
 from pynspect.lexer import MentatFilterLexer
-from pynspect.rules import *
+from pynspect.rules import IPV4Rule, IPV6Rule, IntegerRule, FloatRule, VariableRule, ConstantRule,\
+    LogicalBinOpRule, UnaryOperationRule, ComparisonBinOpRule, MathBinOpRule, ListRule
 
 
 class MentatFilterParser():
@@ -133,7 +137,7 @@ class MentatFilterParser():
     query language grammar used in Mentat project.
     """
 
-    def build(self, **kwargs):
+    def build(self):
         """
         Build/rebuild the parser object
         """
@@ -170,93 +174,93 @@ class MentatFilterParser():
         self.lexer.reset_lineno()
         if not data or data.isspace():
             return []
-        else:
-            return self.parser.parse(data, lexer=self.lexer, debug=debuglevel)
+        return self.parser.parse(data, lexer=self.lexer, debug=debuglevel)
+
 
     #---------------------------------------------------------------------------
 
-    def _create_factor_rule(self, t):
+
+    def _create_factor_rule(self, tok):
         """
         Simple helper method for creating factor node objects based on node name.
         """
-        if (t[0] == 'IPV4'):
-            return IPV4Rule(t[1])
-        elif (t[0] == 'IPV6'):
-            return IPV6Rule(t[1])
-        elif (t[0] == 'INTEGER'):
-            return IntegerRule(t[1])
-        elif (t[0] == 'FLOAT'):
-            return FloatRule(t[1])
-        elif (t[0] == 'VARIABLE'):
-            return VariableRule(t[1])
-        else:
-            return ConstantRule(t[1])
+        if tok[0] == 'IPV4':
+            return IPV4Rule(tok[1])
+        if tok[0] == 'IPV6':
+            return IPV6Rule(tok[1])
+        if tok[0] == 'INTEGER':
+            return IntegerRule(tok[1])
+        if tok[0] == 'FLOAT':
+            return FloatRule(tok[1])
+        if tok[0] == 'VARIABLE':
+            return VariableRule(tok[1])
+        return ConstantRule(tok[1])
 
-    def p_expression(self, t):
+    def p_expression(self, tok):
         """expression : xor_expression OP_OR expression
                       | xor_expression"""
-        if (len(t) == 4):
-            t[0] = LogicalBinOpRule(t[2], t[1], t[3])
+        if len(tok) == 4:
+            tok[0] = LogicalBinOpRule(tok[2], tok[1], tok[3])
         else:
-            t[0] = t[1]
+            tok[0] = tok[1]
 
-    def p_xor_expression(self, t):
+    def p_xor_expression(self, tok):
         """xor_expression : and_expression OP_XOR xor_expression
                           | and_expression"""
-        if (len(t) == 4):
-            t[0] = LogicalBinOpRule(t[2], t[1], t[3])
+        if len(tok) == 4:
+            tok[0] = LogicalBinOpRule(tok[2], tok[1], tok[3])
         else:
-            t[0] = t[1]
+            tok[0] = tok[1]
 
-    def p_and_expression(self, t):
+    def p_and_expression(self, tok):
         """and_expression : or_p_expression OP_AND and_expression
                           | or_p_expression"""
-        if (len(t) == 4):
-            t[0] = LogicalBinOpRule(t[2], t[1], t[3])
+        if len(tok) == 4:
+            tok[0] = LogicalBinOpRule(tok[2], tok[1], tok[3])
         else:
-            t[0] = t[1]
+            tok[0] = tok[1]
 
-    def p_or_p_expression(self, t):
+    def p_or_p_expression(self, tok):
         """or_p_expression : xor_p_expression OP_OR_P or_p_expression
                       | xor_p_expression"""
-        if (len(t) == 4):
-            t[0] = LogicalBinOpRule(t[2], t[1], t[3])
+        if len(tok) == 4:
+            tok[0] = LogicalBinOpRule(tok[2], tok[1], tok[3])
         else:
-            t[0] = t[1]
+            tok[0] = tok[1]
 
-    def p_xor_p_expression(self, t):
+    def p_xor_p_expression(self, tok):
         """xor_p_expression : and_p_expression OP_XOR_P xor_p_expression
                           | and_p_expression"""
-        if (len(t) == 4):
-            t[0] = LogicalBinOpRule(t[2], t[1], t[3])
+        if len(tok) == 4:
+            tok[0] = LogicalBinOpRule(tok[2], tok[1], tok[3])
         else:
-            t[0] = t[1]
+            tok[0] = tok[1]
 
-    def p_and_p_expression(self, t):
+    def p_and_p_expression(self, tok):
         """and_p_expression : not_expression OP_AND_P and_p_expression
                           | not_expression"""
-        if (len(t) == 4):
-            t[0] = LogicalBinOpRule(t[2], t[1], t[3])
+        if len(tok) == 4:
+            tok[0] = LogicalBinOpRule(tok[2], tok[1], tok[3])
         else:
-            t[0] = t[1]
+            tok[0] = tok[1]
 
-    def p_not_expression(self, t):
+    def p_not_expression(self, tok):
         """not_expression : OP_NOT ex_expression
                           | ex_expression"""
-        if (len(t) == 3):
-            t[0] = UnaryOperationRule(t[1], t[2])
+        if len(tok) == 3:
+            tok[0] = UnaryOperationRule(tok[1], tok[2])
         else:
-            t[0] = t[1]
+            tok[0] = tok[1]
 
-    def p_ex_expression(self, t):
+    def p_ex_expression(self, tok):
         """ex_expression : OP_EXISTS cmp_expression
                          | cmp_expression"""
-        if (len(t) == 3):
-            t[0] = UnaryOperationRule(t[1], t[2])
+        if len(tok) == 3:
+            tok[0] = UnaryOperationRule(tok[1], tok[2])
         else:
-            t[0] = t[1]
+            tok[0] = tok[1]
 
-    def p_cmp_expression(self, t):
+    def p_cmp_expression(self, tok):
         """cmp_expression : term OP_LIKE cmp_expression
                           | term OP_IN cmp_expression
                           | term OP_IS cmp_expression
@@ -267,24 +271,24 @@ class MentatFilterParser():
                           | term OP_LT cmp_expression
                           | term OP_LE cmp_expression
                           | term"""
-        if (len(t) == 4):
-            t[0] = ComparisonBinOpRule(t[2], t[1], t[3])
+        if len(tok) == 4:
+            tok[0] = ComparisonBinOpRule(tok[2], tok[1], tok[3])
         else:
-            t[0] = t[1]
+            tok[0] = tok[1]
 
-    def p_term(self, t):
+    def p_term(self, tok):
         """term : factor OP_PLUS term
                 | factor OP_MINUS term
                 | factor OP_TIMES term
                 | factor OP_DIVIDE term
                 | factor OP_MODULO term
                 | factor"""
-        if (len(t) == 4):
-            t[0] = MathBinOpRule(t[2], t[1], t[3])
+        if len(tok) == 4:
+            tok[0] = MathBinOpRule(tok[2], tok[1], tok[3])
         else:
-            t[0] = t[1]
+            tok[0] = tok[1]
 
-    def p_factor(self, t):
+    def p_factor(self, tok):
         """factor : IPV4
                   | IPV6
                   | INTEGER
@@ -293,12 +297,12 @@ class MentatFilterParser():
                   | CONSTANT
                   | LBRACK list RBRACK
                   | LPAREN expression RPAREN"""
-        if (len(t) == 2):
-            t[0] = self._create_factor_rule(t[1])
+        if len(tok) == 2:
+            tok[0] = self._create_factor_rule(tok[1])
         else:
-            t[0] = t[2]
+            tok[0] = tok[2]
 
-    def p_list(self, t):
+    def p_list(self, tok):
         """list : IPV4
                 | IPV6
                 | INTEGER
@@ -311,26 +315,28 @@ class MentatFilterParser():
                 | FLOAT COMMA list
                 | VARIABLE COMMA list
                 | CONSTANT COMMA list"""
-        n = self._create_factor_rule(t[1])
-        if (len(t) == 2):
-            t[0] = ListRule(n)
+        node = self._create_factor_rule(tok[1])
+        if len(tok) == 2:
+            tok[0] = ListRule(node)
         else:
-            t[0] = ListRule(n, t[3])
+            tok[0] = ListRule(node, tok[3])
 
-    def p_error(self, t):
-        print("Syntax error at '%s'" % t.value)
+    def p_error(self, tok):
+        print("Syntax error at '%s'" % tok.value)
 
+
+#
+# Perform the demonstration.
+#
 if __name__ == "__main__":
-    """
-    Perform the demonstration.
-    """
+
     import pprint
 
-    data = "1 and 1 or 1 xor 1"
+    TEST_DATA = "1 and 1 or 1 xor 1"
 
     # Build the parser and try it out
-    m = MentatFilterParser()
-    m.build()
+    DEMO_PARSER = MentatFilterParser()
+    DEMO_PARSER.build()
 
-    print("Parsing: {}".format(data))
-    pprint.pprint(m.parse(data))
+    print("Parsing: {}".format(TEST_DATA))
+    pprint.pprint(DEMO_PARSER.parse(TEST_DATA))

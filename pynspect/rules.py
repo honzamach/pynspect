@@ -390,8 +390,7 @@ class RuleTreeTraverser():
 
     def __is_ip_list(self, right):
         for itemr in right:
-            typer = type(itemr)
-            if typer is ipranges.IP4Net or typer is ipranges.IP6Net or typer is ipranges.IP4Range or typer is ipranges.IP6Range:
+            if isinstance(itemr, (ipranges.IPRangeBase, ipranges.IPNetBase)):
                 return True
         return False
 

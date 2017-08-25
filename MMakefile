@@ -71,7 +71,11 @@ help:
 	@echo "  * ${GREEN}docs${NC}: generate project documentation"
 	@echo "  * ${GREEN}check${NC}: perform extensive code checking"
 	@echo "     = ${ORANGE}pyflakes${NC}: check source code with pyflakes"
+	@echo "        - pyflakes-lib: check library with pyflakes, exclude test files"
+	@echo "        - pyflakes-test: check test files with pyflakes"
 	@echo "     = ${ORANGE}pylint${NC}: check source code with pylint"
+	@echo "        - pylint-lib: check library with pylint, exclude test files"
+	@echo "        - pylint-test: check test files with pylint"
 	@echo "     = ${ORANGE}test${NC}: run unit tests with nosetest"
 	@echo "  * ${GREEN}archive${NC}: archive previous packages"
 	@echo "  * ${GREEN}bdist${NC}:   build new distribution"
@@ -102,14 +106,25 @@ docs: FORCE
 
 #-------------------------------------------------------------------------------
 
+pyflakes: pyflakes-lib pyflakes-test
 
-pyflakes: FORCE
+pyflakes-lib: FORCE
 	@echo "\n${GREEN}*** Checking code with pyflakes ***${NC}\n"
-	@python3 -m pyflakes $(DIR_LIB)/*.py
+	-@python3 -m pyflakes $(DIR_LIB)/*.py
 
-pylint: FORCE
+pyflakes-test: FORCE
+	@echo "\n${GREEN}*** Checking test files with pyflakes ***${NC}\n"
+	-@python3 -m pyflakes $(DIR_LIB)/tests/*.py
+
+pylint: pylint-lib pylint-test
+
+pylint-lib: FORCE
 	@echo "\n${GREEN}*** Checking code with pylint ***${NC}\n"
-	@python3 -m pylint $(DIR_LIB)/*.py --rcfile .pylintrc
+	-@python3 -m pylint $(DIR_LIB)/*.py --rcfile .pylintrc-lib
+
+pylint-test: FORCE
+	@echo "\n${GREEN}*** Checking test files with pylint ***${NC}\n"
+	-@python3 -m pylint $(DIR_LIB)/tests/*.py --rcfile .pylintrc-test
 
 test: FORCE
 	@echo "\n${GREEN}*** Checking code with nosetests ***${NC}\n"

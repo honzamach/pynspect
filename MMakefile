@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------
 # MASTER MAKEFILE FOR PYNSPECT PACKAGE
 #
-# This file is part of Pynspect project (https://pypi.python.org/pypi/pynspect).
+# This file is part of Pynspect package (https://pypi.python.org/pypi/pynspect).
 # Originally part of Mentat system (https://mentat.cesnet.cz/).
 #
 # Copyright (C) since 2016 CESNET, z.s.p.o (http://www.ces.net/).
@@ -14,17 +14,23 @@ DIR_LIB = pynspect
 
 DIST_SIZE:=$(shell ls dist | wc -l)
 
+SPHINXOPTS      =
+SPHINXBUILD     = sphinx-build
+SPHINXPROJ      = Pynspect
+SPHINXSOURCEDIR = .
+SPHINXBUILDDIR  = doc/_build
+
 #
 # Color code definitions for colored terminal output
 # https://stackoverflow.com/questions/5947742/how-to-change-the-output-color-of-echo-in-linux
 #
-RED=\033[0;31m
-GREEN=\033[0;32m
-ORANGE=\033[0;33m
-BLUE=\033[0;34m
-PURPLE=\033[0;35m
-CYAN=\033[0;36m
-NC=\033[0m
+RED    = \033[0;31m
+GREEN  = \033[0;32m
+ORANGE = \033[0;33m
+BLUE   = \033[0;34m
+PURPLE = \033[0;35m
+CYAN   = \033[0;36m
+NC     = \033[0m
 
 
 #-------------------------------------------------------------------------------
@@ -73,6 +79,8 @@ help:
 	@echo "  * ${GREEN}deps${NC}: install various dependencies"
 	@echo "     = ${ORANGE}deps-python${NC}: install Python dependencies with pip3"
 	@echo "  * ${GREEN}docs${NC}: generate project documentation"
+	@echo "     = ${ORANGE}docs-help${NC}: show list of all available html build targets"
+	@echo "     = ${ORANGE}docs-html${NC}: generate project documentation in HTML format"
 	@echo "  * ${GREEN}check${NC}: perform extensive code checking"
 	@echo "     = ${ORANGE}pyflakes${NC}: check source code with pyflakes"
 	@echo "        - pyflakes-lib: check library with pyflakes, exclude test files"
@@ -103,9 +111,14 @@ deps-python: FORCE
 #-------------------------------------------------------------------------------
 
 
-docs: FORCE
+docs: docs-html
+
+docs-help: FORCE
+	@$(SPHINXBUILD) -M help "$(SPHINXSOURCEDIR)" "$(SPHINXBUILDDIR)" $(SPHINXOPTS) $(O)
+
+docs-html: FORCE
 	@echo "\n${GREEN}*** Generating project documentation ***${NC}\n"
-	@make html
+	@$(SPHINXBUILD) -M html "$(SPHINXSOURCEDIR)" "$(SPHINXBUILDDIR)" $(SPHINXOPTS) $(O)
 
 
 #-------------------------------------------------------------------------------

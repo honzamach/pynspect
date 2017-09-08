@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #-------------------------------------------------------------------------------
-# This file is part of Pynspect project (https://pypi.python.org/pypi/pynspect).
+# This file is part of Pynspect package (https://pypi.python.org/pypi/pynspect).
 # Originally part of Mentat system (https://mentat.cesnet.cz/).
 #
 # Copyright (C) since 2016 CESNET, z.s.p.o (http://www.ces.net/).

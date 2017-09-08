@@ -73,6 +73,7 @@ help:
 	@echo ""
 	@echo "  * ${GREEN}default${NC}: alias for help, you have to pick a target"
 	@echo "  * ${GREEN}help${NC}: print this help and exit"
+	@echo "  * ${GREEN}show-version${NC}: show current project version"
 	@echo "  * ${GREEN}full${NC}: generate documentation, archive previous packages, build new distribution and deploy to PyPI"
 	@echo "  * ${GREEN}build${NC}: archive previous packages and build new distribution"
 	@echo "  * ${GREEN}buildbot${NC}: build new distribution using buildbot automated system"
@@ -96,6 +97,13 @@ help:
 	@echo ""
 	@echo " ${GREEN}─────────────────────────────────────────────────${NC}"
 	@echo ""
+
+
+#-------------------------------------------------------------------------------
+
+
+show-version: FORCE
+	@PYTHONPATH=. python3 -c "import pynspect; print(pynspect.__version__);"
 
 
 #-------------------------------------------------------------------------------

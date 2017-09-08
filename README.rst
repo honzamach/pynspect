@@ -1,4 +1,4 @@
-Pynspect - Python data inspection library documentation!
+Pynspect - README
 ================================================================================
 
 .. warning::

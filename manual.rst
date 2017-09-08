@@ -1,7 +1,14 @@
-.. Pynspect - Python data inspection library documentation master file, created by
-   sphinx-quickstart on Wed Feb 15 10:49:01 2017.
+.. MASTER SPHINX-DOC DOCUMENTATION FILE FOR PYNSPECT PACKAGE
 
-Welcome to Pynspect - Python data inspection library's documentation!
+   This file is part of Pynspect package (https://pypi.python.org/pypi/pynspect).
+   Originally part of Mentat system (https://mentat.cesnet.cz/).
+
+   Copyright (C) since 2016 CESNET, z.s.p.o (http://www.ces.net/).
+   Copyright (C) since 2016 Jan Mach <honza.mach.ml@gmail.com>
+   Use of this source is governed by the MIT license, see LICENSE file.
+
+
+Welcome to Pynspect's documentation!
 ================================================================================
 
 .. note::

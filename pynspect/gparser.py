@@ -126,7 +126,7 @@ __credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>"
 import logging
 import ply.yacc
 
-from pynspect.lexer import MentatFilterLexer
+from pynspect.lexer import PynspectFilterLexer
 from pynspect.rules import IPV4Rule, IPV6Rule, IntegerRule, FloatRule, VariableRule, ConstantRule,\
     LogicalBinOpRule, UnaryOperationRule, ComparisonBinOpRule, MathBinOpRule, ListRule
 
@@ -143,7 +143,7 @@ class MentatFilterParser():
         """
         self.logger = logging.getLogger('ply_parser')
 
-        self.lexer = MentatFilterLexer()
+        self.lexer = PynspectFilterLexer()
         self.lexer.build()
 
         self.tokens = self.lexer.tokens

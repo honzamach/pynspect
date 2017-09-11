@@ -21,7 +21,7 @@ __credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>"
 
 import unittest
 
-from pynspect.lexer import MentatFilterLexer
+from pynspect.lexer import PynspectFilterLexer
 
 
 #-------------------------------------------------------------------------------
@@ -30,13 +30,13 @@ from pynspect.lexer import MentatFilterLexer
 #-------------------------------------------------------------------------------
 
 
-class TestMentatFilterLexer(unittest.TestCase):
+class TestPynspectFilterLexer(unittest.TestCase):
     """
     Unit test class for testing the :py:mod:`pynspect.lexer` module.
     """
 
     def setUp(self):
-        self.lex = MentatFilterLexer()
+        self.lex = PynspectFilterLexer()
         self.lex.build()
 
     def test_01_symbols(self):

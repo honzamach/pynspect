@@ -91,7 +91,7 @@ import re
 import ply.lex as lex
 
 
-class MentatFilterLexer():
+class PynspectFilterLexer():
     """
     Object encapsulation of *PLY* lexical analyzer implementation for
     filtering and query language grammar.
@@ -328,6 +328,6 @@ if __name__ == "__main__":
     """
 
     # Build the lexer and try it out
-    DEMO_LEXER = MentatFilterLexer()
+    DEMO_LEXER = PynspectFilterLexer()
     DEMO_LEXER.build()
     print(DEMO_LEXER.test(TEST_DATA, "\n"))

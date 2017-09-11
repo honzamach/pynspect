@@ -180,7 +180,8 @@ class PynspectFilterParser():
     #---------------------------------------------------------------------------
 
 
-    def _create_factor_rule(self, tok):
+    @staticmethod
+    def _create_factor_rule(tok):
         """
         Simple helper method for creating factor node objects based on node name.
         """
@@ -196,7 +197,8 @@ class PynspectFilterParser():
             return VariableRule(tok[1])
         return ConstantRule(tok[1])
 
-    def p_expression(self, tok):
+    @staticmethod
+    def p_expression(tok):
         """expression : xor_expression OP_OR expression
                       | xor_expression"""
         if len(tok) == 4:
@@ -204,7 +206,8 @@ class PynspectFilterParser():
         else:
             tok[0] = tok[1]
 
-    def p_xor_expression(self, tok):
+    @staticmethod
+    def p_xor_expression(tok):
         """xor_expression : and_expression OP_XOR xor_expression
                           | and_expression"""
         if len(tok) == 4:
@@ -212,7 +215,8 @@ class PynspectFilterParser():
         else:
             tok[0] = tok[1]
 
-    def p_and_expression(self, tok):
+    @staticmethod
+    def p_and_expression(tok):
         """and_expression : or_p_expression OP_AND and_expression
                           | or_p_expression"""
         if len(tok) == 4:
@@ -220,7 +224,8 @@ class PynspectFilterParser():
         else:
             tok[0] = tok[1]
 
-    def p_or_p_expression(self, tok):
+    @staticmethod
+    def p_or_p_expression(tok):
         """or_p_expression : xor_p_expression OP_OR_P or_p_expression
                       | xor_p_expression"""
         if len(tok) == 4:
@@ -228,7 +233,8 @@ class PynspectFilterParser():
         else:
             tok[0] = tok[1]
 
-    def p_xor_p_expression(self, tok):
+    @staticmethod
+    def p_xor_p_expression(tok):
         """xor_p_expression : and_p_expression OP_XOR_P xor_p_expression
                           | and_p_expression"""
         if len(tok) == 4:
@@ -236,7 +242,9 @@ class PynspectFilterParser():
         else:
             tok[0] = tok[1]
 
-    def p_and_p_expression(self, tok):
+
+    @staticmethod
+    def p_and_p_expression(tok):
         """and_p_expression : not_expression OP_AND_P and_p_expression
                           | not_expression"""
         if len(tok) == 4:
@@ -244,7 +252,8 @@ class PynspectFilterParser():
         else:
             tok[0] = tok[1]
 
-    def p_not_expression(self, tok):
+    @staticmethod
+    def p_not_expression(tok):
         """not_expression : OP_NOT ex_expression
                           | ex_expression"""
         if len(tok) == 3:
@@ -252,7 +261,8 @@ class PynspectFilterParser():
         else:
             tok[0] = tok[1]
 
-    def p_ex_expression(self, tok):
+    @staticmethod
+    def p_ex_expression(tok):
         """ex_expression : OP_EXISTS cmp_expression
                          | cmp_expression"""
         if len(tok) == 3:
@@ -260,7 +270,9 @@ class PynspectFilterParser():
         else:
             tok[0] = tok[1]
 
-    def p_cmp_expression(self, tok):
+
+    @staticmethod
+    def p_cmp_expression(tok):
         """cmp_expression : term OP_LIKE cmp_expression
                           | term OP_IN cmp_expression
                           | term OP_IS cmp_expression
@@ -276,7 +288,8 @@ class PynspectFilterParser():
         else:
             tok[0] = tok[1]
 
-    def p_term(self, tok):
+    @staticmethod
+    def p_term(tok):
         """term : factor OP_PLUS term
                 | factor OP_MINUS term
                 | factor OP_TIMES term
@@ -321,7 +334,8 @@ class PynspectFilterParser():
         else:
             tok[0] = ListRule([node], tok[3])
 
-    def p_error(self, tok):
+    @staticmethod
+    def p_error(tok):
         print("Syntax error at '%s'" % tok.value)
 
 

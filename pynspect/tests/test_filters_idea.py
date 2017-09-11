@@ -36,7 +36,7 @@ from pynspect.filters import DataObjectFilter, IDEAFilterCompiler, clean_variabl
 #-------------------------------------------------------------------------------
 
 
-class TestMentatDataObjectFilterIDEA(unittest.TestCase):
+class TestDataObjectFilterIDEA(unittest.TestCase):
     """
     Unit test class for testing the :py:mod:`pynspect.filters` module.
     """

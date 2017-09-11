@@ -33,7 +33,7 @@ from pynspect.filters import DataObjectFilter
 #-------------------------------------------------------------------------------
 
 
-class TestMentatDataObjectFilter(unittest.TestCase):
+class TestDataObjectFilter(unittest.TestCase):
     """
     Unit test class for testing the :py:mod:`pynspect.filters` module.
     """

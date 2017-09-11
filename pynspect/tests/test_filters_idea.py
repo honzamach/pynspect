@@ -24,10 +24,9 @@ import unittest
 
 from idea import lite
 from pynspect.rules import IntegerRule, VariableRule, ConstantRule,\
-    LogicalBinOpRule, UnaryOperationRule, ComparisonBinOpRule, MathBinOpRule, ListRule,\
-    py2_timestamp
+    LogicalBinOpRule, UnaryOperationRule, ComparisonBinOpRule, MathBinOpRule, ListRule
 from pynspect.gparser import PynspectFilterParser
-from pynspect.filters import DataObjectFilter, IDEAFilterCompiler, clean_variable
+from pynspect.filters import py2_timestamp, DataObjectFilter, IDEAFilterCompiler, clean_variable
 
 
 #-------------------------------------------------------------------------------
@@ -397,14 +396,14 @@ class TestDataObjectFilterIDEA(unittest.TestCase):
         rule = psr.parse('(Source.IP4 in ["188.14.166.39","188.14.166.40","188.14.166.41"])')
         self.assertEqual(repr(rule), "COMPBINOP(VARIABLE('Source.IP4') OP_IN LIST(CONSTANT('188.14.166.39'), CONSTANT('188.14.166.40'), CONSTANT('188.14.166.41')))")
         rule = cpl.compile(rule)
-        self.assertEqual(repr(rule), "COMPBINOP(VARIABLE('Source.IP4') OP_IN LIST(IPV4(IP4('188.14.166.39')), IPV4(IP4('188.14.166.40')), IPV4(IP4('188.14.166.41'))))")
+        self.assertEqual(repr(rule), "COMPBINOP(VARIABLE('Source.IP4') OP_IN IPLIST(IPV4(IP4('188.14.166.39')), IPV4(IP4('188.14.166.40')), IPV4(IP4('188.14.166.41'))))")
         self.assertEqual(flt.filter(rule, msg_idea), True)
 
         # list with CIDR addresses
         rule = psr.parse('(Source.IP4 in ["188.14.166.0/24","10.0.0.0/8","189.14.166.41"])')
         self.assertEqual(repr(rule), "COMPBINOP(VARIABLE('Source.IP4') OP_IN LIST(CONSTANT('188.14.166.0/24'), CONSTANT('10.0.0.0/8'), CONSTANT('189.14.166.41')))")
         rule = cpl.compile(rule)
-        self.assertEqual(repr(rule), "COMPBINOP(VARIABLE('Source.IP4') OP_IN LIST(IPV4(IP4Net('188.14.166.0/24')), IPV4(IP4Net('10.0.0.0/8')), IPV4(IP4('189.14.166.41'))))")
+        self.assertEqual(repr(rule), "COMPBINOP(VARIABLE('Source.IP4') OP_IN IPLIST(IPV4(IP4Net('188.14.166.0/24')), IPV4(IP4Net('10.0.0.0/8')), IPV4(IP4('189.14.166.41'))))")
         self.assertEqual(flt.filter(rule, msg_idea), True)
 
 

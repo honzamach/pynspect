@@ -104,20 +104,6 @@ __author__ = "Jan Mach <jan.mach@cesnet.cz>"
 __credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>, Andrea Kropáčová <andrea.kropacova@cesnet.cz>"
 
 
-import re
-import datetime
-import calendar
-
-import ipranges
-
-# For python2 compatibility: conversion of datetime.
-def py2_timestamp(val):
-    """
-    Get unix timestamp value out of given datetime object.
-    """
-    return calendar.timegm(val.timetuple()) + val.microsecond / 1000000.0
-
-
 class FilteringRuleException(Exception):
     """
     Custom filtering rule specific exception.
@@ -262,6 +248,9 @@ class ListRule(ValueRule):
         if next_rule:
             self.value += next_rule.value
 
+    def values(self):
+        return [i.value for i in self.value]
+
     def __str__(self):
         return '[{}]'.format(', '.join([str(v) for v in self.value]))
 
@@ -355,204 +344,33 @@ class UnaryOperationRule(OperationRule):
         rrt = self.right.traverse(traverser, **kwargs)
         return traverser.unary_operation(self, rrt, **kwargs)
 
-def _to_numeric(val):
-    """
-    Helper function for conversion of various data types into numeric representation.
-    """
-    if isinstance(val, (int, float)):
-        return val
-    if isinstance(val, datetime.datetime):
-        try:
-            return val.timestamp()
-        except:
-            # python 2 compatibility
-            return py2_timestamp(val)
-
-    return float(val)
-
 
 class RuleTreeTraverser():
     """
     Base class for all rule tree traversers.
     """
-
-    binops_logical = {
-        'OP_OR':    lambda x, y : x or y,
-        'OP_XOR':   lambda x, y : (x and not y) or (not x and y),
-        'OP_AND':   lambda x, y : x and y,
-        'OP_OR_P':  lambda x, y : x or y,
-        'OP_XOR_P': lambda x, y : (x and not y) or (not x and y),
-        'OP_AND_P': lambda x, y : x and y,
-    }
-    """
-    Definitions of all logical binary operations.
-    """
-
-    def __is_ip_list(self, right):
-        for itemr in right:
-            if isinstance(itemr, (ipranges.IPRangeBase, ipranges.IPNetBase)):
-                return True
-        return False
-
-    def __op_in_iplist(self, left, right):
-        for itemr in right:
-            if left in itemr:
-                return True
-        return False
-
-    binops_comparison = {
-        'OP_LIKE': lambda x, y : re.search(y, x),
-        'OP_IN':   lambda x, y : x in y,
-        'OP_IS':   lambda x, y : x == y,
-        'OP_EQ':   lambda x, y : x == y,
-        'OP_NE':   lambda x, y : x != y,
-        'OP_GT':   lambda x, y : x > y,
-        'OP_GE':   lambda x, y : x >= y,
-        'OP_LT':   lambda x, y : x < y,
-        'OP_LE':   lambda x, y : x <= y,
-    }
-    """
-    Definitions of all comparison binary operations.
-    """
-
-    binops_math = {
-        'OP_PLUS':   lambda x, y : x + y,
-        'OP_MINUS':  lambda x, y : x - y,
-        'OP_TIMES':  lambda x, y : x * y,
-        'OP_DIVIDE': lambda x, y : x / y,
-        'OP_MODULO': lambda x, y : x % y,
-    }
-    """
-    Definitions of all mathematical binary operations.
-    """
-
-    unops = {
-        'OP_NOT':    lambda x : not x,
-        'OP_EXISTS': lambda x : x,
-    }
-    """
-    Definitions of all unary operations.
-    """
-
-    def evaluate_binop_logical(self, operation, left, right, **kwargs):
-        """
-        Evaluate given logical binary operation with given operands.
-        """
-        if not operation in self.binops_logical:
-            raise Exception("Invalid logical binary operation '{}'".format(operation))
-        result = self.binops_logical[operation](left, right)
-        return bool(result)
-
-    def evaluate_binop_comparison(self, operation, left, right, **kwargs):
-        """
-        Evaluate given comparison binary operation with given operands.
-        """
-        if not operation in self.binops_comparison:
-            raise Exception("Invalid comparison binary operation '{}'".format(operation))
-        if left is None or right is None:
-            return None
-        if not isinstance(left, list):
-            left = [left]
-        if not isinstance(right, list):
-            right = [right]
-        if not left or not right:
-            return None
-        if operation in ['OP_IS']:
-            res = self.binops_comparison[operation](left, right)
-            if res:
-                return True
-        elif operation in ['OP_IN']:
-            if not self.__is_ip_list(right):
-                for iteml in left:
-                    res = self.binops_comparison[operation](iteml, right)
-                    if res:
-                        return True
-            else:
-                for iteml in left:
-                    res = self.__op_in_iplist(iteml, right)
-                    if res:
-                        return True
-        else:
-            for iteml in left:
-                if iteml is None:
-                    continue
-                for itemr in right:
-                    if itemr is None:
-                        continue
-                    res = self.binops_comparison[operation](iteml, itemr)
-                    if res:
-                        return True
-        return False
-
-    def _calculate_vector(self, operation, left, right):
-        """
-        Calculate vector result from two list operands with given mathematical operation.
-        """
-        result = []
-        if len(right) == 1:
-            right = _to_numeric(right[0])
-            for iteml in left:
-                iteml = _to_numeric(iteml)
-                result.append(self.binops_math[operation](iteml, right))
-        elif len(left) == 1:
-            left = _to_numeric(left[0])
-            for itemr in right:
-                itemr = _to_numeric(itemr)
-                result.append(self.binops_math[operation](left, itemr))
-        elif len(left) == len(right):
-            for iteml, itemr in zip(left, right):
-                iteml = _to_numeric(iteml)
-                itemr = _to_numeric(itemr)
-                result.append(self.binops_math[operation](iteml, itemr))
-        else:
-            raise FilteringRuleException("Uneven length of math operation '{}' operands".format(operation))
-        return result
-
-    def evaluate_binop_math(self, operation, left, right, **kwargs):
-        """
-        Evaluate given mathematical binary operation with given operands.
-        """
-        if not operation in self.binops_math:
-            raise Exception("Invalid math binary operation '{}'".format(operation))
-        if left is None or right is None:
-            return None
-        if not isinstance(left, list):
-            left = [left]
-        if not isinstance(right, list):
-            right = [right]
-        if not left or not right:
-            return None
-        try:
-            vect = self._calculate_vector(operation, left, right)
-            if len(vect) > 1:
-                return vect
-            return vect[0]
-        except:
-            return None
-
-    def evaluate_unop(self, operation, right, **kwargs):
-        """
-        Evaluate given unary operation with given operand.
-        """
-        if not operation in self.unops:
-            raise Exception("Invalid unary operation '{}'".format(operation))
-        if right is None:
-            return None
-        return self.unops[operation](right)
-
-    #def evaluate(self, operation, *args):
-    #    """
-    #    Master method for evaluating any operation (both unary and binary).
-    #    """
-    #    if operation in self.binops_comparison:
-    #        return self.evaluate_binop_comparison(operation, *args)
-    #    if operation in self.binops_logical:
-    #        return self.evaluate_binop_logical(operation, *args)
-    #    if operation in self.binops_math:
-    #        return self.evaluate_binop_math(operation, *args)
-    #    if operation in self.unops:
-    #        return self.evaluate_unop(operation, *args)
-    #    raise Exception("Invalid operation '{}'".format(operation))
+    def ipv4(self, rule, **kwargs):
+        raise NotImplementedError()
+    def ipv6(self, rule, **kwargs):
+        raise NotImplementedError()
+    def integer(self, rule, **kwargs):
+        raise NotImplementedError()
+    def float(self, rule, **kwargs):
+        raise NotImplementedError()
+    def constant(self, rule, **kwargs):
+        raise NotImplementedError()
+    def variable(self, rule, **kwargs):
+        raise NotImplementedError()
+    def list(self, rule, **kwargs):
+        raise NotImplementedError()
+    def binary_operation_logical(self, rule, left, right, **kwargs):
+        raise NotImplementedError()
+    def binary_operation_comparison(self, rule, left, right, **kwargs):
+        raise NotImplementedError()
+    def binary_operation_math(self, rule, left, right, **kwargs):
+        raise NotImplementedError()
+    def unary_operation(self, rule, right, **kwargs):
+        raise NotImplementedError()
 
 
 class PrintingTreeTraverser(RuleTreeTraverser):

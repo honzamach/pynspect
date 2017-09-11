@@ -317,9 +317,9 @@ class PynspectFilterParser():
                 | CONSTANT COMMA list"""
         node = self._create_factor_rule(tok[1])
         if len(tok) == 2:
-            tok[0] = ListRule(node)
+            tok[0] = ListRule([node])
         else:
-            tok[0] = ListRule(node, tok[3])
+            tok[0] = ListRule([node], tok[3])
 
     def p_error(self, tok):
         print("Syntax error at '%s'" % tok.value)

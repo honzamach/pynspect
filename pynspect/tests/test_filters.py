@@ -23,7 +23,7 @@ import unittest
 
 from pynspect.rules import IntegerRule, VariableRule, ConstantRule, ListRule,\
     LogicalBinOpRule, UnaryOperationRule, ComparisonBinOpRule, MathBinOpRule
-from pynspect.gparser import MentatFilterParser
+from pynspect.gparser import PynspectFilterParser
 from pynspect.filters import DataObjectFilter
 
 
@@ -98,7 +98,7 @@ class TestMentatDataObjectFilter(unittest.TestCase):
 
     def setUp(self):
         self.flt = DataObjectFilter()
-        self.psr = MentatFilterParser()
+        self.psr = PynspectFilterParser()
         self.psr.build()
 
     def test_01_basic_logical(self):

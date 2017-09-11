@@ -73,10 +73,10 @@ class DataObjectFilter(RuleTreeTraverser):
     Rule tree traverser implementing  default object filtering logic.
 
     Following example demonstrates DataObjectFilter usage in conjuction with
-    MentatFilterParser::
+    PynspectFilterParser::
 
     >>> flt = DataObjectFilter()
-    >>> psr = MentatFilterParser()
+    >>> psr = PynspectFilterParser()
     >>> psr.build()
     >>> rule = psr.parse('ID like "e214d2d9"')
     >>> result = flt.filter(rule, test_msg)
@@ -178,12 +178,12 @@ class IDEAFilterCompiler(RuleTreeTraverser):
     Rule tree traverser implementing IDEA filter compilation algorithm.
 
     Following example demonstrates DataObjectFilter usage in conjuction with
-    MentatFilterParser::
+    PynspectFilterParser::
 
     >>> msg_idea = lite.Idea(test_msg)
     >>> flt = DataObjectFilter()
     >>> cpl = IDEAFilterCompiler()
-    >>> psr = MentatFilterParser()
+    >>> psr = PynspectFilterParser()
     >>> psr.build()
     >>> rule = psr.parse('ID like "e214d2d9"')
     >>> rule = cpl.compile(rule)

@@ -22,7 +22,7 @@ __credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>"
 import unittest
 
 from idea import lite
-from pynspect.gparser import MentatFilterParser
+from pynspect.gparser import PynspectFilterParser
 from pynspect.filters import DataObjectFilter, IDEAFilterCompiler
 
 
@@ -45,7 +45,7 @@ class TestMentatDataObjectFilterInspector(unittest.TestCase):
 
         flt = DataObjectFilter()
         cpl = IDEAFilterCompiler()
-        psr = MentatFilterParser()
+        psr = PynspectFilterParser()
         psr.build()
 
         inspection_rules = [

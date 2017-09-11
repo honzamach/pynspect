@@ -21,7 +21,7 @@ __credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>"
 
 import unittest
 
-from pynspect.gparser import MentatFilterParser
+from pynspect.gparser import PynspectFilterParser
 
 
 #-------------------------------------------------------------------------------
@@ -30,13 +30,13 @@ from pynspect.gparser import MentatFilterParser
 #-------------------------------------------------------------------------------
 
 
-class TestMentatFilterParser(unittest.TestCase):
+class TestPynspectFilterParser(unittest.TestCase):
     """
     Unit test class for testing the :py:mod:`pynspect.gparser` module.
     """
 
     def setUp(self):
-        self.psr = MentatFilterParser()
+        self.psr = PynspectFilterParser()
         self.psr.build()
 
     def test_01_operations_logical(self):

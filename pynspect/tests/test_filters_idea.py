@@ -26,7 +26,7 @@ from idea import lite
 from pynspect.rules import IntegerRule, VariableRule, ConstantRule,\
     LogicalBinOpRule, UnaryOperationRule, ComparisonBinOpRule, MathBinOpRule, ListRule,\
     py2_timestamp
-from pynspect.gparser import MentatFilterParser
+from pynspect.gparser import PynspectFilterParser
 from pynspect.filters import DataObjectFilter, IDEAFilterCompiler, clean_variable
 
 
@@ -150,7 +150,7 @@ class TestMentatDataObjectFilterIDEA(unittest.TestCase):
 
         msg_idea = lite.Idea(self.test_msg1)
         flt = DataObjectFilter()
-        psr = MentatFilterParser()
+        psr = PynspectFilterParser()
         psr.build()
 
         rule = ComparisonBinOpRule('OP_EQ', VariableRule("ID"), ConstantRule("e214d2d9-359b-443d-993d-3cc5637107a0"))
@@ -261,7 +261,7 @@ class TestMentatDataObjectFilterIDEA(unittest.TestCase):
 
         msg_idea = lite.Idea(self.test_msg1)
         flt = DataObjectFilter()
-        psr = MentatFilterParser()
+        psr = PynspectFilterParser()
         psr.build()
 
         rule = MathBinOpRule('OP_PLUS', VariableRule("ConnCount"), IntegerRule(1))
@@ -297,7 +297,7 @@ class TestMentatDataObjectFilterIDEA(unittest.TestCase):
         self.assertEqual(clean_variable('Target[1].IP4[22]'), 'Target.IP4')
 
         cpl = IDEAFilterCompiler()
-        psr = MentatFilterParser()
+        psr = PynspectFilterParser()
         psr.build()
 
         rule = psr.parse('(Source.IP4 == "188.14.166.39")')
@@ -354,7 +354,7 @@ class TestMentatDataObjectFilterIDEA(unittest.TestCase):
         msg_idea = lite.Idea(self.test_msg1)
         flt = DataObjectFilter()
         cpl = IDEAFilterCompiler()
-        psr = MentatFilterParser()
+        psr = PynspectFilterParser()
         psr.build()
 
         rule = psr.parse('DetectTime + 3600')

@@ -131,7 +131,7 @@ from pynspect.rules import IPV4Rule, IPV6Rule, IntegerRule, FloatRule, VariableR
     LogicalBinOpRule, UnaryOperationRule, ComparisonBinOpRule, MathBinOpRule, ListRule
 
 
-class MentatFilterParser():
+class PynspectFilterParser():
     """
     Object encapsulation of *PLY* parser implementation for filtering and
     query language grammar used in Mentat project.
@@ -335,7 +335,7 @@ if __name__ == "__main__":
     TEST_DATA = "1 and 1 or 1 xor 1"
 
     # Build the parser and try it out
-    DEMO_PARSER = MentatFilterParser()
+    DEMO_PARSER = PynspectFilterParser()
     DEMO_PARSER.build()
 
     print("Parsing: {}".format(TEST_DATA))

@@ -66,14 +66,14 @@ import datetime
 import ipranges
 from pynspect.rules import IPV4Rule, IPV6Rule, DatetimeRule, IntegerRule, FloatRule, NumberRule, VariableRule,\
     LogicalBinOpRule, UnaryOperationRule, ComparisonBinOpRule, MathBinOpRule, ListRule
-from pynspect.traversers import ListIP, FilteringTreeTraverser
+from pynspect.traversers import ListIP, BaseFilteringTreeTraverser
 from pynspect.jpath import jpath_values
 
 
 TIMESTAMP_RE = re.compile(r"^([0-9]{4})-([0-9]{2})-([0-9]{2})[Tt]([0-9]{2}):([0-9]{2}):([0-9]{2})(?:\.([0-9]+))?([Zz]|(?:[+-][0-9]{2}:[0-9]{2}))$")
 
 
-class DataObjectFilter(FilteringTreeTraverser):
+class DataObjectFilter(BaseFilteringTreeTraverser):
     """
     Rule tree traverser implementing  default object filtering logic.
 
@@ -261,7 +261,7 @@ COMPILATIONS_IDEA_OBJECT = {
 }
 
 
-class IDEAFilterCompiler(FilteringTreeTraverser):
+class IDEAFilterCompiler(BaseFilteringTreeTraverser):
     """
     Rule tree traverser implementing IDEA filter compilation algorithm.
 

@@ -24,9 +24,10 @@ rule tree into a formated string:
 * :py:class:`pynspect.traversers.PrintingTreeTraverser`
 
 There is also a base class for implementing filtering rule tree traversers, that
-provides many usefull tools and features:
+provides many usefull tools and features and can be used to implement traversers
+that actually do something:
 
-* :py:class:`pynspect.traversers.FilteringTreeTraverser`
+* :py:class:`pynspect.traversers.BaseFilteringTreeTraverser`
 
 """
 
@@ -412,7 +413,7 @@ class ListIP(collections.MutableSequence):
     def __repr__(self): return "%s(%s)" % (type(self).__name__, repr(self.data))
 
 
-class FilteringTreeTraverser(BaseRuleTreeTraverser):
+class BaseFilteringTreeTraverser(BaseRuleTreeTraverser):
     """
     Base class for all filtering rule tree traversers.
     """

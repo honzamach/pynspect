@@ -23,7 +23,7 @@ import unittest
 
 from pynspect.rules import IntegerRule, VariableRule, LogicalBinOpRule, UnaryOperationRule,\
     ComparisonBinOpRule, MathBinOpRule, FunctionRule
-from pynspect.traversers import PrintingTreeTraverser, FilteringTreeTraverser
+from pynspect.traversers import PrintingTreeTraverser, BaseFilteringTreeTraverser
 
 
 #-------------------------------------------------------------------------------
@@ -65,13 +65,13 @@ class TestPynspectPrintingTreeTraverser(unittest.TestCase):
         self.assertEqual(rule_function.traverse(self.tvs), "FUNCTION(test;['VARIABLE(Test)'])")
 
 
-class TestPynspectFilteringTreeTraverser(unittest.TestCase):
+class TestPynspectBaseFilteringTreeTraverser(unittest.TestCase):
     """
     Unit test class for testing the RuleTreeTraverser from :py:mod:`pynspect.rules` module.
     """
 
     def setUp(self):
-        self.tvs = FilteringTreeTraverser()
+        self.tvs = BaseFilteringTreeTraverser()
 
     def test_01_eval_binops_logical(self):
         """

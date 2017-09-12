@@ -469,7 +469,7 @@ class BaseFilteringTreeTraverser(BaseRuleTreeTraverser):
         Evaluate given logical binary operation with given operands.
         """
         if not operation in self.binops_logical:
-            raise Exception("Invalid logical binary operation '{}'".format(operation))
+            raise ValueError("Invalid logical binary operation '{}'".format(operation))
         result = self.binops_logical[operation](left, right)
         return bool(result)
 
@@ -478,7 +478,7 @@ class BaseFilteringTreeTraverser(BaseRuleTreeTraverser):
         Evaluate given comparison binary operation with given operands.
         """
         if not operation in self.binops_comparison:
-            raise Exception("Invalid comparison binary operation '{}'".format(operation))
+            raise ValueError("Invalid comparison binary operation '{}'".format(operation))
         if left is None or right is None:
             return None
         if not isinstance(left, (list, ListIP)):
@@ -537,7 +537,7 @@ class BaseFilteringTreeTraverser(BaseRuleTreeTraverser):
         Evaluate given mathematical binary operation with given operands.
         """
         if not operation in self.binops_math:
-            raise Exception("Invalid math binary operation '{}'".format(operation))
+            raise ValueError("Invalid math binary operation '{}'".format(operation))
         if left is None or right is None:
             return None
         if not isinstance(left, (list, ListIP)):
@@ -559,7 +559,7 @@ class BaseFilteringTreeTraverser(BaseRuleTreeTraverser):
         Evaluate given unary operation with given operand.
         """
         if not operation in self.unops:
-            raise Exception("Invalid unary operation '{}'".format(operation))
+            raise ValueError("Invalid unary operation '{}'".format(operation))
         if right is None:
             return None
         return self.unops[operation](right)

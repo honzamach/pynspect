@@ -68,7 +68,8 @@ import calendar
 import ipranges
 from pynspect.rules import IPV4Rule, IPV6Rule, IntegerRule, FloatRule, NumberRule, VariableRule,\
     LogicalBinOpRule, UnaryOperationRule, ComparisonBinOpRule, MathBinOpRule, ListRule,\
-    RuleTreeTraverser, FilteringRuleException
+    FilteringRuleException
+from pynspect.traversers import RuleTreeTraverser
 from pynspect.jpath import jpath_values
 
 

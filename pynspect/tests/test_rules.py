@@ -23,8 +23,7 @@ import unittest
 from pprint import pformat
 
 from pynspect.rules import IPV4Rule, IPV6Rule, IntegerRule, FloatRule, VariableRule, ConstantRule,\
-    LogicalBinOpRule, UnaryOperationRule, ComparisonBinOpRule, MathBinOpRule, ListRule,\
-    PrintingTreeTraverser
+    LogicalBinOpRule, UnaryOperationRule, ComparisonBinOpRule, MathBinOpRule, ListRule
 
 
 #-------------------------------------------------------------------------------
@@ -82,36 +81,6 @@ class TestPynspectRules(unittest.TestCase):
         rule_unop = UnaryOperationRule("OP_NOT", rule_var)
         self.assertEqual(str(rule_unop), "(OP_NOT Test)")
         self.assertEqual(repr(rule_unop), "UNOP(OP_NOT VARIABLE('Test'))")
-
-
-class TestPynspectPrintingTreeTraverser(unittest.TestCase):
-    """
-    Unit test class for testing the PrintingTreeTraverser from :py:mod:`pynspect.rules` module.
-    """
-
-    def setUp(self):
-        self.tvs = PrintingTreeTraverser()
-
-    def test_01_basic(self):
-        """
-        Demonstrate and test the PrintingTreeTraverser object.
-        """
-        self.maxDiff = None
-
-        rule_binop_l = LogicalBinOpRule('OP_OR', VariableRule("Test"), IntegerRule(10))
-        self.assertEqual(rule_binop_l.traverse(self.tvs), 'LOGBINOP(OP_OR;VARIABLE(Test);INTEGER(10))')
-
-        rule_binop_c = ComparisonBinOpRule('OP_GT', VariableRule("Test"), IntegerRule(15))
-        self.assertEqual(rule_binop_c.traverse(self.tvs), 'COMPBINOP(OP_GT;VARIABLE(Test);INTEGER(15))')
-
-        rule_binop_m = MathBinOpRule('OP_PLUS', VariableRule("Test"), IntegerRule(10))
-        self.assertEqual(rule_binop_m.traverse(self.tvs), 'MATHBINOP(OP_PLUS;VARIABLE(Test);INTEGER(10))')
-
-        rule_binop = LogicalBinOpRule('OP_OR', ComparisonBinOpRule('OP_GT', MathBinOpRule('OP_PLUS', VariableRule("Test"), IntegerRule(10)), IntegerRule(20)), ComparisonBinOpRule('OP_LT', VariableRule("Test"), IntegerRule(5)))
-        self.assertEqual(rule_binop.traverse(self.tvs), 'LOGBINOP(OP_OR;COMPBINOP(OP_GT;MATHBINOP(OP_PLUS;VARIABLE(Test);INTEGER(10));INTEGER(20));COMPBINOP(OP_LT;VARIABLE(Test);INTEGER(5)))')
-
-        rule_unop = UnaryOperationRule('OP_NOT', VariableRule("Test"))
-        self.assertEqual(rule_unop.traverse(self.tvs), 'UNOP(OP_NOT;VARIABLE(Test))')
 
 
 #-------------------------------------------------------------------------------

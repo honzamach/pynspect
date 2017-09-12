@@ -22,7 +22,7 @@ __credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>"
 import unittest
 
 from pynspect.rules import IntegerRule, VariableRule, LogicalBinOpRule, UnaryOperationRule,\
-    ComparisonBinOpRule, MathBinOpRule
+    ComparisonBinOpRule, MathBinOpRule, FunctionRule
 from pynspect.traversers import PrintingTreeTraverser
 
 
@@ -60,6 +60,9 @@ class TestPynspectPrintingTreeTraverser(unittest.TestCase):
 
         rule_unop = UnaryOperationRule('OP_NOT', VariableRule("Test"))
         self.assertEqual(rule_unop.traverse(self.tvs), 'UNOP(OP_NOT;VARIABLE(Test))')
+
+        rule_function = FunctionRule('test', VariableRule("Test"))
+        self.assertEqual(rule_function.traverse(self.tvs), "FUNCTION(test;['VARIABLE(Test)'])")
 
 
 #-------------------------------------------------------------------------------

@@ -63,6 +63,7 @@ Currently recognized tokens
     INTEGER  = r'\d+'
     FLOAT    = r'\d+\.\d+'
     CONSTANT = r'"([^"]+)"|\'([^\']+)\''
+    FUNCTION = r'[_a-zA-Z][_a-zA-Z0-9]{2,}\('
     VARIABLE = r'[_a-zA-Z][-_a-zA-Z0-9]*(?:\[(?:\d+|-\d+|\#)\])?(?:\.?[a-zA-Z][-_a-zA-Z0-9]*(?:\[(?:\d+|-\d+|\#)\])?)*'
 
 .. note::
@@ -195,6 +196,7 @@ class PynspectFilterLexer():
         'INTEGER',
         'FLOAT',
         'CONSTANT',
+        'FUNCTION',
         'VARIABLE'
     ]
 
@@ -265,6 +267,11 @@ class PynspectFilterLexer():
         tok.value = (tok.type, int(tok.value))
         return tok
 
+    def t_FUNCTION(self, tok):
+        r'[_a-zA-Z][_a-zA-Z0-9]{2,}\('
+        tok.value = (tok.type, tok.value[:-1])
+        return tok
+
     def t_VARIABLE(self, tok):
         r'[_a-zA-Z][-_a-zA-Z0-9]*(?:\[(?:\d+|-\d+|\#)\])?(?:\.?[a-zA-Z][-_a-zA-Z0-9]*(?:\[(?:\d+|-\d+|\#)\])?)*'
         tok.value = (tok.type, tok.value)
@@ -325,6 +332,9 @@ if __name__ == "__main__":
         LE 15 le 15 <= 15
         (127.0.0.1 eq ::1 eq 2001:afdc::58 eq Source.Node eq "Value 525.89:X><" eq 'Value 525.89:X><')
         [1, 2, 3 , 4]
+        function()
+        function(127.0.0.1)
+        function("argument")
     """
 
     # Build the lexer and try it out

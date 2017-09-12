@@ -474,6 +474,43 @@ class UnaryOperationRule(OperationRule):
         return traverser.unary_operation(self, rrt, **kwargs)
 
 
+class FunctionRule(Rule):
+    """
+    Base class for all expression binary operations.
+    """
+    def __init__(self, function, *args):
+        """
+        Initialize the object with function name and arguments.
+
+        :param str function: Name of the function.
+        :param args: Optional function arguments.
+        """
+        self.function = function
+        self.args = args
+
+    def __str__(self):
+        return "{}{}".format(str(self.function), str(self.args))
+
+    def __repr__(self):
+        return "FUNCTION({}{})".format(str(self.function), repr(self.args))
+
+    def traverse(self, traverser, **kwargs):
+        """
+        Implementation of mandatory interface for traversing the whole rule tree.
+        This method will call the implementation of :py:func:`pynspect.rules.RuleTreeTraverser.binary_operation_logical`
+        method with reference to ``self`` instance as first argument and with the
+        result of traversing left subtree as second argument. The optional ``kwargs``
+        are passed down to traverser callback as additional arguments and can be
+        used to provide additional data or context.
+
+        :param pynspect.rules.RuleTreeTraverser traverser: Traverser object providing appropriate interface.
+        :param dict kwargs: Additional optional keyword arguments to be passed down to traverser callback.
+        """
+        art = []
+        for arg in self.args:
+            art.append(arg.traverse(traverser, **kwargs))
+        return traverser.function(self, art, **kwargs)
+
 #-------------------------------------------------------------------------------
 
 

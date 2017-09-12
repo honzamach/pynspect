@@ -136,6 +136,16 @@ class TestPynspectFilterLexer(unittest.TestCase):
         self.assertEqual(self.lex.test('["constant1";"constant2"; "constant3";"constant4" ; "constant5" ]'), "LexToken(LBRACK,'[',1,0)LexToken(CONSTANT,('CONSTANT', 'constant1'),1,1)LexToken(COMMA,';',1,12)LexToken(CONSTANT,('CONSTANT', 'constant2'),1,13)LexToken(COMMA,'; ',1,24)LexToken(CONSTANT,('CONSTANT', 'constant3'),1,26)LexToken(COMMA,';',1,37)LexToken(CONSTANT,('CONSTANT', 'constant4'),1,38)LexToken(COMMA,'; ',1,50)LexToken(CONSTANT,('CONSTANT', 'constant5'),1,52)LexToken(RBRACK,']',1,64)")
         self.assertEqual(self.lex.test(''), "")
 
+    def test_06_functions(self):
+        """
+        Check, that all lexical tokens for functions are correctly recognized.
+        """
+        self.maxDiff = None
+
+        self.assertEqual(self.lex.test('___('), "LexToken(FUNCTION,('FUNCTION', '___'),1,0)")
+        self.assertEqual(self.lex.test('_ab('), "LexToken(FUNCTION,('FUNCTION', '_ab'),1,0)")
+        self.assertEqual(self.lex.test('_AB('), "LexToken(FUNCTION,('FUNCTION', '_AB'),1,0)")
+
 
 #-------------------------------------------------------------------------------
 

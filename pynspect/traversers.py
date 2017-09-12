@@ -153,6 +153,17 @@ class RuleTreeTraverser():
         """
         raise NotImplementedError()
 
+    def function(self, rule, args, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.FunctionRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param args: Optional function arguments.
+        :param dict kwargs: Optional callback arguments.
+        """
+        raise NotImplementedError()
+
 
 class PrintingTreeTraverser(RuleTreeTraverser):
     """
@@ -274,6 +285,17 @@ class PrintingTreeTraverser(RuleTreeTraverser):
         :param dict kwargs: Optional callback arguments.
         """
         return "UNOP({};{})".format(rule.operation, right)
+
+    def function(self, rule, args, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.FunctionRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param args: Optional function arguments.
+        :param dict kwargs: Optional callback arguments.
+        """
+        return "FUNCTION({};{})".format(rule.function, str(args))
 
 
 #-------------------------------------------------------------------------------

@@ -39,6 +39,14 @@ Grammar features
 
 * Quoted literal constants: ``"double quotes"`` or ``'single quotes'``
 
+* Functions
+
+  Grammar supports calling arbitrary functions with optional arguments. Argument
+  may be any valid expression, multiple arguments must be passed down as list.
+  Function support in grammar is only one part of the whole picture, it must also
+  be implemented in tree traversers to work. Each traverser may provide certain set
+  available functions and define required and optional arguments.
+
 For more details on supported grammar token syntax please see the documentation
 of :py:mod:`pynspect.lexer` module.
 
@@ -95,6 +103,8 @@ Currently implemented grammar
            | FLOAT
            | VARIABLE
            | CONSTANT
+           | FUNCTION RPAREN
+           | FUNCTION expression RPAREN
            | LBRACK list RBRACK
            | LPAREN expression RPAREN
 
@@ -129,7 +139,7 @@ import ply.yacc
 
 from pynspect.lexer import PynspectFilterLexer
 from pynspect.rules import IPV4Rule, IPV6Rule, IntegerRule, FloatRule, VariableRule, ConstantRule,\
-    LogicalBinOpRule, UnaryOperationRule, ComparisonBinOpRule, MathBinOpRule, ListRule
+    LogicalBinOpRule, UnaryOperationRule, ComparisonBinOpRule, MathBinOpRule, FunctionRule, ListRule
 
 
 class PynspectFilterParser():
@@ -197,6 +207,15 @@ class PynspectFilterParser():
         if tok[0] == 'VARIABLE':
             return VariableRule(tok[1])
         return ConstantRule(tok[1])
+
+    @staticmethod
+    def _create_function_rule(tok, args = None):
+        """
+        Simple helper method for creating function node objects.
+        """
+        if args:
+            return FunctionRule(tok[1], args)
+        return FunctionRule(tok[1])
 
     @staticmethod
     def p_expression(tok):
@@ -309,10 +328,16 @@ class PynspectFilterParser():
                   | FLOAT
                   | VARIABLE
                   | CONSTANT
+                  | FUNCTION RPAREN
+                  | FUNCTION expression RPAREN
                   | LBRACK list RBRACK
                   | LPAREN expression RPAREN"""
         if len(tok) == 2:
             tok[0] = self._create_factor_rule(tok[1])
+        elif len(tok) == 3:
+            tok[0] = self._create_function_rule(tok[1])
+        elif tok[1][0] == 'FUNCTION':
+            tok[0] = self._create_function_rule(tok[1], tok[2])
         else:
             tok[0] = tok[2]
 

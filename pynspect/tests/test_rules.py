@@ -23,7 +23,7 @@ import unittest
 from pprint import pformat
 
 from pynspect.rules import IPV4Rule, IPV6Rule, IntegerRule, FloatRule, VariableRule, ConstantRule,\
-    LogicalBinOpRule, UnaryOperationRule, ComparisonBinOpRule, MathBinOpRule, ListRule
+    LogicalBinOpRule, UnaryOperationRule, ComparisonBinOpRule, MathBinOpRule, FunctionRule, ListRule
 
 
 #-------------------------------------------------------------------------------
@@ -81,7 +81,9 @@ class TestPynspectRules(unittest.TestCase):
         rule_unop = UnaryOperationRule("OP_NOT", rule_var)
         self.assertEqual(str(rule_unop), "(OP_NOT Test)")
         self.assertEqual(repr(rule_unop), "UNOP(OP_NOT VARIABLE('Test'))")
-
+        rule_func = FunctionRule('test', rule_const)
+        self.assertEqual(str(rule_func), "test(CONSTANT('constant'),)")
+        self.assertEqual(repr(rule_func), "FUNCTION(test(CONSTANT('constant'),))")
 
 #-------------------------------------------------------------------------------
 

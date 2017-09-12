@@ -72,10 +72,11 @@ from pynspect.rules import IPV4Rule, IPV6Rule, IntegerRule, FloatRule, NumberRul
 from pynspect.jpath import jpath_values
 
 
-# For python2 compatibility: conversion of datetime.
 def py2_timestamp(val):
     """
     Get unix timestamp value out of given datetime object.
+
+    Implemented for Python2 compatibility purposes.
     """
     return calendar.timegm(val.timetuple()) + val.microsecond / 1000000.0
 

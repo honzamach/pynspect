@@ -20,26 +20,26 @@ Currently recognized tokens
 
 .. code-block:: python
 
-    # Mathematical operation tokens
-    OP_PLUS   = r'\+'
-    OP_MINUS  = r'-'
-    OP_TIMES  = r'\*'
-    OP_DIVIDE = r'/'
-    OP_MODULO = r'%'
+    # Mathematical operation tokens.
+    OP_PLUS   = r'\+'   # Addition
+    OP_MINUS  = r'-'    # Substraction
+    OP_TIMES  = r'\*'   # Multiplication
+    OP_DIVIDE = r'/'    # Division
+    OP_MODULO = r'%'    # Modulo
 
-    # Logical operation tokens
-    OP_OR     = r'(or|OR)'
-    OP_XOR    = r'(xor|XOR)'
-    OP_AND    = r'(and|AND)'
-    OP_NOT    = r'(not|NOT)'
-    OP_EXISTS = r'(exists|EXISTS|\?)'
+    # Logical operation tokens.
+    OP_OR     = r'(or|OR)'              # Logical OR
+    OP_XOR    = r'(xor|XOR)'            # Logical XOR (exclusive OR)
+    OP_AND    = r'(and|AND)'            # Logical AND
+    OP_NOT    = r'(not|NOT)'            # Logical NOT
+    OP_EXISTS = r'(exists|EXISTS|\?)'   # Test for existence
 
-    # Priority logical operation tokens
-    OP_OR_P  = r'\|\|'
-    OP_XOR_P = r'\^\^'
-    OP_AND_P = r'&&'
+    # Priority logical operation tokens.
+    OP_OR_P  = r'\|\|'  # Logical OR with higher priority than tokens above
+    OP_XOR_P = r'\^\^'  # Logical XOR with higher priority than tokens above
+    OP_AND_P = r'&&'    # Logical AND with higher priority than tokens above
 
-    # Comparison operation tokens
+    # Comparison operation tokens.
     OP_LIKE = r'(like|LIKE|=~)'
     OP_IN   = r'(in|IN|~~)'
     OP_IS   = r'(is|IS)'
@@ -50,14 +50,14 @@ Currently recognized tokens
     OP_LT   = r'(lt|LT|<)'
     OP_LE   = r'(le|LE|<=)'
 
-    # Special tokens
+    # Special tokens.
     COMMA  = r'\s*,\s*|\s*;\s*'
     LPAREN = r'\('
     RPAREN = r'\)'
     LBRACK = r'\['
     RBRACK = r'\]'
 
-    # Contant and variable tokens
+    # Contant and variable tokens.
     IPV4     = r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?:\/\d{1,2}|(?:-|..)\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})?'
     IPV6     = r'[:a-fA-F0-9]+:[:a-fA-F0-9]*(?:\/\d{1,3}|(?:-|..)[:a-fA-F0-9]+:[:a-fA-F0-9]*)?'
     INTEGER  = r'\d+'

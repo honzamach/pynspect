@@ -41,9 +41,6 @@ traverser interface:
 
 * :py:class:`RuleTreeTraverser`
 
-The provided :py:class:`RuleTreeTraverser` class contains also implementation of
-all necessary evaluation methods.
-
 There is a simple example implementation of rule tree traverser capable of
 printing rule tree into a formated string:
 
@@ -112,55 +109,70 @@ class FilteringRuleException(Exception):
     """
     def __init__(self, description):
         super().__init__()
-        self._description = description
+        self.description = description
+
     def __str__(self):
-        return repr(self._description)
+        return repr(self.description)
 
 
 class Rule():
     """
     Base class for all filter tree rules.
     """
-    pass
+    def traverse(self, traverser, **kwargs):
+        """
+        Mandatory interface for traversing the whole rule tree. This method must
+        call apropriate method of given traverser object with apropriate arguments.
+        The optional ``kwargs`` are passed down to traverser callback as additional
+        arguments and can be used to provide additional data or context.
+
+        :param pynspect.rules.RuleTreeTraverser traverser: Traverser object providing appropriate interface.
+        :param dict kwargs: Additional optional keyword arguments to be passed down to traverser callback.
+        """
+        raise NotImplementedError()
 
 
 class ValueRule(Rule):
     """
     Base class for all filter tree value rules.
     """
-    pass
-
-
-class VariableRule(ValueRule):
-    """
-    Class for expression variables.
-    """
     def __init__(self, value):
         """
-        Initialize the variable with given path value.
+        Initialize the rule with given value.
+
+        :param value: Value for the rule.
         """
         self.value = value
 
     def __str__(self):
-        return "{}".format(self.value)
+        return '{}'.format(self.value)
 
+
+class VariableRule(ValueRule):
+    """
+    Class representing filtering expression variables.
+    """
     def __repr__(self):
         return "VARIABLE({})".format(repr(self.value))
 
     def traverse(self, traverser, **kwargs):
+        """
+        Implementation of mandatory interface for traversing the whole rule tree.
+        This method will call the implementation of :py:func:`pynspect.rules.RuleTreeTraverser.variable`
+        method with reference to ``self`` instance as first argument. The optional
+        ``kwargs`` are passed down to traverser callback as additional arguments
+        and can be used to provide additional data or context.
+
+        :param pynspect.rules.RuleTreeTraverser traverser: Traverser object providing appropriate interface.
+        :param dict kwargs: Additional optional keyword arguments to be passed down to traverser callback.
+        """
         return traverser.variable(self, **kwargs)
 
 
 class ConstantRule(ValueRule):
     """
-    Class for all expression constant values.
+    Class representing filtering expression string constants.
     """
-    def __init__(self, value):
-        """
-        Initialize the constant with given value.
-        """
-        self.value = value
-
     def __str__(self):
         return '"{}"'.format(self.value)
 
@@ -168,12 +180,22 @@ class ConstantRule(ValueRule):
         return "CONSTANT({})".format(repr(self.value))
 
     def traverse(self, traverser, **kwargs):
+        """
+        Implementation of mandatory interface for traversing the whole rule tree.
+        This method will call the implementation of :py:func:`pynspect.rules.RuleTreeTraverser.constant`
+        method with reference to ``self`` instance as first argument. The optional
+        ``kwargs`` are passed down to traverser callback as additional arguments
+        and can be used to provide additional data or context.
+
+        :param pynspect.rules.RuleTreeTraverser traverser: Traverser object providing appropriate interface.
+        :param dict kwargs: Additional optional keyword arguments to be passed down to traverser callback.
+        """
         return traverser.constant(self, **kwargs)
 
 
 class IPV4Rule(ConstantRule):
     """
-    Class for IPv4 address constants.
+    Class representing filtering expression IPv4 address/range/network constants.
     """
     def __str__(self):
         return '{}'.format(self.value)
@@ -182,12 +204,22 @@ class IPV4Rule(ConstantRule):
         return "IPV4({})".format(repr(self.value))
 
     def traverse(self, traverser, **kwargs):
+        """
+        Implementation of mandatory interface for traversing the whole rule tree.
+        This method will call the implementation of :py:func:`pynspect.rules.RuleTreeTraverser.ipv4`
+        method with reference to ``self`` instance as first argument. The optional
+        ``kwargs`` are passed down to traverser callback as additional arguments
+        and can be used to provide additional data or context.
+
+        :param pynspect.rules.RuleTreeTraverser traverser: Traverser object providing appropriate interface.
+        :param dict kwargs: Additional optional keyword arguments to be passed down to traverser callback.
+        """
         return traverser.ipv4(self, **kwargs)
 
 
 class IPV6Rule(ConstantRule):
     """
-    Class for IPv6 address constants.
+    Class representing filtering expression IPv6 address/range/network constants.
     """
     def __str__(self):
         return '{}'.format(self.value)
@@ -196,60 +228,87 @@ class IPV6Rule(ConstantRule):
         return "IPV6({})".format(repr(self.value))
 
     def traverse(self, traverser, **kwargs):
+        """
+        Implementation of mandatory interface for traversing the whole rule tree.
+        This method will call the implementation of :py:func:`pynspect.rules.RuleTreeTraverser.ipv6`
+        method with reference to ``self`` instance as first argument. The optional
+        ``kwargs`` are passed down to traverser callback as additional arguments
+        and can be used to provide additional data or context.
+
+        :param pynspect.rules.RuleTreeTraverser traverser: Traverser object providing appropriate interface.
+        :param dict kwargs: Additional optional keyword arguments to be passed down to traverser callback.
+        """
         return traverser.ipv6(self, **kwargs)
 
 
 class NumberRule(ConstantRule):
     """
-    Base class for all numerical constants.
-    """
-    pass
-
-
-class IntegerRule(NumberRule):
-    """
-    Class for integer constants.
+    Base class for all filtering expression numerical constants.
     """
     def __str__(self):
         return '{}'.format(self.value)
 
+
+class IntegerRule(NumberRule):
+    """
+    Class representing filtering expression integer numerical constants.
+    """
     def __repr__(self):
         return "INTEGER({})".format(repr(self.value))
 
     def traverse(self, traverser, **kwargs):
+        """
+        Implementation of mandatory interface for traversing the whole rule tree.
+        This method will call the implementation of :py:func:`pynspect.rules.RuleTreeTraverser.integer`
+        method with reference to ``self`` instance as first argument. The optional
+        ``kwargs`` are passed down to traverser callback as additional arguments
+        and can be used to provide additional data or context.
+
+        :param pynspect.rules.RuleTreeTraverser traverser: Traverser object providing appropriate interface.
+        :param dict kwargs: Additional optional keyword arguments to be passed down to traverser callback.
+        """
         return traverser.integer(self, **kwargs)
 
 
 class FloatRule(NumberRule):
     """
-    Class for float constants.
+    Class representing filtering expression floating point numerical constants.
     """
-    def __str__(self):
-        return '{}'.format(self.value)
-
     def __repr__(self):
         return "FLOAT({})".format(repr(self.value))
 
     def traverse(self, traverser, **kwargs):
+        """
+        Implementation of mandatory interface for traversing the whole rule tree.
+        This method will call the implementation of :py:func:`pynspect.rules.RuleTreeTraverser.float`
+        method with reference to ``self`` instance as first argument. The optional
+        ``kwargs`` are passed down to traverser callback as additional arguments
+        and can be used to provide additional data or context.
+
+        :param pynspect.rules.RuleTreeTraverser traverser: Traverser object providing appropriate interface.
+        :param dict kwargs: Additional optional keyword arguments to be passed down to traverser callback.
+        """
         return traverser.float(self, **kwargs)
 
 
 class ListRule(ValueRule):
     """
-    Base class for all filter tree rules.
+    Class representing filtering expression list of constants.
     """
     def __init__(self, rule, next_rule = None):
         """
-        Initialize the constant with given value.
+        Initialize the list with given rule. Optionally add next rule to the list.
+
+        :param pysnpect.rules.Rule rule: Rule to be added to the list.
+        :param pysnpect.rules.ListRule next_rule: Next rule in the chain.
         """
         if not isinstance(rule, list):
             rule = [rule]
-        self.value = rule
+
+        super().__init__(rule)
+
         if next_rule:
             self.value += next_rule.value
-
-    def values(self):
-        return [i.value for i in self.value]
 
     def __str__(self):
         return '[{}]'.format(', '.join([str(v) for v in self.value]))
@@ -257,7 +316,23 @@ class ListRule(ValueRule):
     def __repr__(self):
         return "LIST({})".format(', '.join([repr(v) for v in self.value]))
 
+    def values(self):
+        """
+        Return true values of the rules in the list.
+        """
+        return [i.value for i in self.value]
+
     def traverse(self, traverser, **kwargs):
+        """
+        Implementation of mandatory interface for traversing the whole rule tree.
+        This method will call the implementation of :py:func:`pynspect.rules.RuleTreeTraverser.list`
+        method with reference to ``self`` instance as first argument. The optional
+        ``kwargs`` are passed down to traverser callback as additional arguments
+        and can be used to provide additional data or context.
+
+        :param pynspect.rules.RuleTreeTraverser traverser: Traverser object providing appropriate interface.
+        :param dict kwargs: Additional optional keyword arguments to be passed down to traverser callback.
+        """
         return traverser.list(self, **kwargs)
 
 
@@ -270,11 +345,15 @@ class OperationRule(Rule):
 
 class BinaryOperationRule(OperationRule):
     """
-    Base class for all binary operations.
+    Base class for all expression binary operations.
     """
     def __init__(self, operation, left, right):
         """
         Initialize the object with operation type and both operands.
+
+        :param str operation: Type of the binary operations.
+        :param pynspect.rules.Rule left: Left operation operand.
+        :param pynspect.rules.Rule right: Right operation operand.
         """
         self.operation = operation
         self.left = left
@@ -286,12 +365,24 @@ class BinaryOperationRule(OperationRule):
 
 class LogicalBinOpRule(BinaryOperationRule):
     """
-    Base class for all logical binary operations.
+    Base class for all expression logical binary operations.
     """
     def __repr__(self):
         return "LOGBINOP({} {} {})".format(repr(self.left), str(self.operation), repr(self.right))
 
     def traverse(self, traverser, **kwargs):
+        """
+        Implementation of mandatory interface for traversing the whole rule tree.
+        This method will call the implementation of :py:func:`pynspect.rules.RuleTreeTraverser.binary_operation_logical`
+        method with reference to ``self`` instance as first argument, with the
+        result of traversing left subtree as second argument and with the result
+        of traversing right subtree as third argument. The optional ``kwargs``
+        are passed down to traverser callback as additional arguments and can be
+        used to provide additional data or context.
+
+        :param pynspect.rules.RuleTreeTraverser traverser: Traverser object providing appropriate interface.
+        :param dict kwargs: Additional optional keyword arguments to be passed down to traverser callback.
+        """
         lrt = self.left.traverse(traverser, **kwargs)
         rrt = self.right.traverse(traverser, **kwargs)
         return traverser.binary_operation_logical(self, lrt, rrt, **kwargs)
@@ -299,12 +390,24 @@ class LogicalBinOpRule(BinaryOperationRule):
 
 class ComparisonBinOpRule(BinaryOperationRule):
     """
-    Base class for all comparison binary operations.
+    Base class for all expression comparison binary operations.
     """
     def __repr__(self):
         return "COMPBINOP({} {} {})".format(repr(self.left), str(self.operation), repr(self.right))
 
     def traverse(self, traverser, **kwargs):
+        """
+        Implementation of mandatory interface for traversing the whole rule tree.
+        This method will call the implementation of :py:func:`pynspect.rules.RuleTreeTraverser.binary_operation_comparison`
+        method with reference to ``self`` instance as first argument, with the
+        result of traversing left subtree as second argument and with the result
+        of traversing right subtree as third argument. The optional ``kwargs``
+        are passed down to traverser callback as additional arguments and can be
+        used to provide additional data or context.
+
+        :param pynspect.rules.RuleTreeTraverser traverser: Traverser object providing appropriate interface.
+        :param dict kwargs: Additional optional keyword arguments to be passed down to traverser callback.
+        """
         lrt = self.left.traverse(traverser, **kwargs)
         rrt = self.right.traverse(traverser, **kwargs)
         return traverser.binary_operation_comparison(self, lrt, rrt, **kwargs)
@@ -312,12 +415,24 @@ class ComparisonBinOpRule(BinaryOperationRule):
 
 class MathBinOpRule(BinaryOperationRule):
     """
-    Base class for all mathematical binary operations.
+    Base class for all expression mathematical binary operations.
     """
     def __repr__(self):
         return "MATHBINOP({} {} {})".format(repr(self.left), str(self.operation), repr(self.right))
 
     def traverse(self, traverser, **kwargs):
+        """
+        Implementation of mandatory interface for traversing the whole rule tree.
+        This method will call the implementation of :py:func:`pynspect.rules.RuleTreeTraverser.binary_operation_math`
+        method with reference to ``self`` instance as first argument, with the
+        result of traversing left subtree as second argument and with the result
+        of traversing right subtree as third argument. The optional ``kwargs``
+        are passed down to traverser callback as additional arguments and can be
+        used to provide additional data or context.
+
+        :param pynspect.rules.RuleTreeTraverser traverser: Traverser object providing appropriate interface.
+        :param dict kwargs: Additional optional keyword arguments to be passed down to traverser callback.
+        """
         lrt = self.left.traverse(traverser, **kwargs)
         rrt = self.right.traverse(traverser, **kwargs)
         return traverser.binary_operation_math(self, lrt, rrt, **kwargs)
@@ -325,14 +440,17 @@ class MathBinOpRule(BinaryOperationRule):
 
 class UnaryOperationRule(OperationRule):
     """
-    Base class for all unary operations.
+    Base class for all expression unary operations.
     """
-    def __init__(self, operation, right):
+    def __init__(self, operation, operand):
         """
         Initialize the object with operation type operand.
+
+        :param str operation: Type of the binary operations.
+        :param pynspect.rules.Rule operand: Operation operand.
         """
         self.operation = operation
-        self.right = right
+        self.right = operand
 
     def __str__(self):
         return "({} {})".format(str(self.operation), str(self.right))
@@ -341,35 +459,145 @@ class UnaryOperationRule(OperationRule):
         return "UNOP({} {})".format(str(self.operation), repr(self.right))
 
     def traverse(self, traverser, **kwargs):
+        """
+        Implementation of mandatory interface for traversing the whole rule tree.
+        This method will call the implementation of :py:func:`pynspect.rules.RuleTreeTraverser.binary_operation_logical`
+        method with reference to ``self`` instance as first argument and with the
+        result of traversing left subtree as second argument. The optional ``kwargs``
+        are passed down to traverser callback as additional arguments and can be
+        used to provide additional data or context.
+
+        :param pynspect.rules.RuleTreeTraverser traverser: Traverser object providing appropriate interface.
+        :param dict kwargs: Additional optional keyword arguments to be passed down to traverser callback.
+        """
         rrt = self.right.traverse(traverser, **kwargs)
         return traverser.unary_operation(self, rrt, **kwargs)
 
 
+#-------------------------------------------------------------------------------
+
+
 class RuleTreeTraverser():
     """
-    Base class for all rule tree traversers.
+    Base class and interface definition for all rule tree traversers. This is a
+    mandatory interface that is required for an object to be able to traverse
+    through given :py:class:`pynspect.rules.Rule` tree.
     """
     def ipv4(self, rule, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.IPV4Rule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param dict kwargs: Optional callback arguments.
+        """
         raise NotImplementedError()
+
     def ipv6(self, rule, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.IPV6Rule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param dict kwargs: Optional callback arguments.
+        """
         raise NotImplementedError()
+
     def integer(self, rule, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.IntegerRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param dict kwargs: Optional callback arguments.
+        """
         raise NotImplementedError()
+
     def float(self, rule, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.FloatRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param dict kwargs: Optional callback arguments.
+        """
         raise NotImplementedError()
+
     def constant(self, rule, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.ConstantRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param dict kwargs: Optional callback arguments.
+        """
         raise NotImplementedError()
+
     def variable(self, rule, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.VariableRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param dict kwargs: Optional callback arguments.
+        """
         raise NotImplementedError()
+
     def list(self, rule, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.ListRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param dict kwargs: Optional callback arguments.
+        """
         raise NotImplementedError()
+
     def binary_operation_logical(self, rule, left, right, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.LogicalBinOpRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param left: Left operand for operation.
+        :param right: right operand for operation.
+        :param dict kwargs: Optional callback arguments.
+        """
         raise NotImplementedError()
+
     def binary_operation_comparison(self, rule, left, right, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.ComparisonBinOpRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param left: Left operand for operation.
+        :param right: right operand for operation.
+        :param dict kwargs: Optional callback arguments.
+        """
         raise NotImplementedError()
+
     def binary_operation_math(self, rule, left, right, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.MathBinOpRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param left: Left operand for operation.
+        :param right: right operand for operation.
+        :param dict kwargs: Optional callback arguments.
+        """
         raise NotImplementedError()
+
     def unary_operation(self, rule, right, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.UnaryOperationRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param right: right operand for operation.
+        :param dict kwargs: Optional callback arguments.
+        """
         raise NotImplementedError()
 
 
@@ -378,26 +606,120 @@ class PrintingTreeTraverser(RuleTreeTraverser):
     Demonstation of simple rule tree traverser - printing traverser.
     """
     def ipv4(self, rule, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.IPV4Rule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param dict kwargs: Optional callback arguments.
+        """
         return "IPV4({})".format(rule.value)
+
     def ipv6(self, rule, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.IPV6Rule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param dict kwargs: Optional callback arguments.
+        """
         return "IPV6({})".format(rule.value)
+
     def integer(self, rule, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.IntegerRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param dict kwargs: Optional callback arguments.
+        """
         return "INTEGER({})".format(rule.value)
+
     def float(self, rule, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.FloatRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param dict kwargs: Optional callback arguments.
+        """
         return "FLOAT({})".format(rule.value)
+
     def constant(self, rule, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.ConstantRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param dict kwargs: Optional callback arguments.
+        """
         return "CONSTANT({})".format(rule.value)
+
     def variable(self, rule, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.VariableRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param dict kwargs: Optional callback arguments.
+        """
         return "VARIABLE({})".format(rule.value)
+
     def list(self, rule, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.ListRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param dict kwargs: Optional callback arguments.
+        """
         return "LIST({})".format(', '.join([str(v) for v in rule.value]))
+
     def binary_operation_logical(self, rule, left, right, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.LogicalBinOpRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param left: Left operand for operation.
+        :param right: right operand for operation.
+        :param dict kwargs: Optional callback arguments.
+        """
         return "LOGBINOP({};{};{})".format(rule.operation, left, right)
+
     def binary_operation_comparison(self, rule, left, right, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.ComparisonBinOpRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param left: Left operand for operation.
+        :param right: right operand for operation.
+        :param dict kwargs: Optional callback arguments.
+        """
         return "COMPBINOP({};{};{})".format(rule.operation, left, right)
+
     def binary_operation_math(self, rule, left, right, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.MathBinOpRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param left: Left operand for operation.
+        :param right: right operand for operation.
+        :param dict kwargs: Optional callback arguments.
+        """
         return "MATHBINOP({};{};{})".format(rule.operation, left, right)
+
     def unary_operation(self, rule, right, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.UnaryOperationRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param right: right operand for operation.
+        :param dict kwargs: Optional callback arguments.
+        """
         return "UNOP({};{})".format(rule.operation, right)
 
 

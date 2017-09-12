@@ -36,6 +36,7 @@ Grammar features
     * IPv6: ``::1 ::1/64 ::1-::5 ::1..::5``
     * integer: ``0 1 42``
     * float: ``3.14159``
+
 * Quoted literal constants: ``"double quotes"`` or ``'single quotes'``
 
 For more details on supported grammar token syntax please see the documentation

@@ -90,6 +90,7 @@ help:
 	@echo "        - pylint-lib: check library with pylint, exclude test files"
 	@echo "        - pylint-test: check test files with pylint"
 	@echo "     = ${ORANGE}test${NC}: run unit tests with nosetest"
+	@echo "  * ${GREEN}benchmark${NC}: run benchmarks"
 	@echo "  * ${GREEN}archive${NC}: archive previous packages"
 	@echo "  * ${GREEN}bdist${NC}:   build new distribution"
 	@echo "  * ${GREEN}install${NC}: install distribution on local machine"
@@ -159,6 +160,14 @@ test: FORCE
 #-------------------------------------------------------------------------------
 
 
+benchmark: FORCE
+	@echo "\n${GREEN}*** Running code benchmarks ***${NC}\n"
+	@python3 pynspect/benchmark/bench_jpath.py
+
+
+#-------------------------------------------------------------------------------
+
+
 archive: FORCE
 	@if ! [ `ls dist/pynspect* | wc -l` = "0" ]; then\
 		echo "\n${GREEN}*** Moving old distribution files to archive ***${NC}\n";\
@@ -176,6 +185,7 @@ install: FORCE
 deploy: FORCE
 	@echo "\n${GREEN}*** Deploying packages to PyPI ***${NC}\n"
 	@twine upload dist/* --skip-existing
+
 
 # Empty rule as dependency will force make to always perform target
 # Source: https://www.gnu.org/software/make/manual/html_node/Force-Targets.html

@@ -16,7 +16,7 @@ that are supposed to be used to work with rule tree structures.
 
 The base implementation and interface definition is can be found in following class:
 
-* :py:class:`pynspect.traversers.RuleTreeTraverser`
+* :py:class:`pynspect.traversers.BaseRuleTreeTraverser`
 
 There is a simple example implementation of rule tree traverser capable of printing
 rule tree into a formated string:
@@ -43,7 +43,7 @@ import calendar
 from pynspect.rules import FilteringRuleException
 
 
-class RuleTreeTraverser():
+class BaseRuleTreeTraverser():
     """
     Base class and interface definition for all rule tree traversers. This is a
     mandatory interface that is required for an object to be able to traverse
@@ -191,7 +191,7 @@ class RuleTreeTraverser():
 #-------------------------------------------------------------------------------
 
 
-class PrintingTreeTraverser(RuleTreeTraverser):
+class PrintingTreeTraverser(BaseRuleTreeTraverser):
     """
     Demonstation of simple rule tree traverser - printing traverser.
     """
@@ -412,7 +412,7 @@ class ListIP(collections.MutableSequence):
     def __repr__(self): return "%s(%s)" % (type(self).__name__, repr(self.data))
 
 
-class FilteringTreeTraverser(RuleTreeTraverser):
+class FilteringTreeTraverser(BaseRuleTreeTraverser):
     """
     Base class for all filtering rule tree traversers.
     """

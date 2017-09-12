@@ -38,6 +38,12 @@ Currently the package contains following features:
     Module containing object representations of internal filtering and query
     language grammar.
 
+:py:mod:`pynspect.traversers`
+    Module containing tools for traversing and processing rule trees.
+
+:py:mod:`pynspect.compilers`
+    Module containing tools for compiling rule trees into different structures.
+
 :py:mod:`pynspect.filters`
     Module providing high-level tools for data inspection based on internal filtering
     and query grammar.

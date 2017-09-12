@@ -25,7 +25,8 @@ from idea import lite
 from pynspect.rules import IntegerRule, VariableRule, ConstantRule,\
     LogicalBinOpRule, UnaryOperationRule, ComparisonBinOpRule, MathBinOpRule, ListRule
 from pynspect.gparser import PynspectFilterParser
-from pynspect.filters import DataObjectFilter, IDEAFilterCompiler, clean_variable
+from pynspect.filters import DataObjectFilter
+from pynspect.compilers import IDEAFilterCompiler, clean_variable
 from pynspect.traversers import _py2_timestamp
 
 #-------------------------------------------------------------------------------

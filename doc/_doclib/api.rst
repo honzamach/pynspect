@@ -18,4 +18,5 @@ API
    api_pynspect.gparser
    api_pynspect.rules
    api_pynspect.traversers
+   api_pynspect.compilers
    api_pynspect.filters

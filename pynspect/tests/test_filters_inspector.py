@@ -23,7 +23,8 @@ import unittest
 
 from idea import lite
 from pynspect.gparser import PynspectFilterParser
-from pynspect.filters import DataObjectFilter, IDEAFilterCompiler
+from pynspect.filters import DataObjectFilter
+from pynspect.compilers import IDEAFilterCompiler
 
 
 #-------------------------------------------------------------------------------

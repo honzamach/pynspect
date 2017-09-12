@@ -19,15 +19,14 @@ __author__ = "Jan Mach <jan.mach@cesnet.cz>"
 __credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>"
 
 
-import datetime
 import unittest
 
 from idea import lite
 from pynspect.rules import IntegerRule, VariableRule, ConstantRule,\
     LogicalBinOpRule, UnaryOperationRule, ComparisonBinOpRule, MathBinOpRule, ListRule
 from pynspect.gparser import PynspectFilterParser
-from pynspect.filters import py2_timestamp, DataObjectFilter, IDEAFilterCompiler, clean_variable
-
+from pynspect.filters import DataObjectFilter, IDEAFilterCompiler, clean_variable
+from pynspect.traversers import _py2_timestamp
 
 #-------------------------------------------------------------------------------
 # NOTE: Sorry for the long lines in this file. They are deliberate, because the

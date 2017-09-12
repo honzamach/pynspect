@@ -101,7 +101,7 @@ def _to_numeric(val):
 
 class FilteringTreeTraverser(RuleTreeTraverser):
     """
-    Base class for all rule tree traversers.
+    Base class for all filtering rule tree traversers.
     """
 
     binops_logical = {
@@ -264,6 +264,7 @@ class FilteringTreeTraverser(RuleTreeTraverser):
     #        return self.evaluate_unop(operation, *args)
     #    raise Exception("Invalid operation '{}'".format(operation))
 
+
 class DataObjectFilter(FilteringTreeTraverser):
     """
     Rule tree traverser implementing  default object filtering logic.
@@ -286,7 +287,7 @@ class DataObjectFilter(FilteringTreeTraverser):
         """
         Apply given filtering rule to given data structure.
 
-        :param Rule rule: filtering rule to be checked
+        :param pynspect.rules.Rule rule: filtering rule to be checked
         :param any data: data structure to check against rule, ussually dict
         :return: True or False or expression result
         :rtype: bool or any
@@ -296,38 +297,73 @@ class DataObjectFilter(FilteringTreeTraverser):
     #---------------------------------------------------------------------------
 
     def ipv4(self, rule, **kwargs):
-        """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
+        """
+        Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.ipv4` interface.
+        """
         return rule.value
+
     def ipv6(self, rule, **kwargs):
-        """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
+        """
+        Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.ipv6` interface.
+        """
         return rule.value
+
     def datetime(self, rule, **kwargs):
-        """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
+        """
+        Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.datetime` interface.
+        """
         return rule.value
+
     def integer(self, rule, **kwargs):
-        """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
+        """
+        Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.integer` interface.
+        """
         return rule.value
+
     def constant(self, rule, **kwargs):
-        """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
+        """
+        Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.constant` interface.
+        """
         return rule.value
+
     def variable(self, rule, **kwargs):
-        """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
+        """
+        Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.variable` interface.
+        """
         return jpath_values(kwargs['obj'], rule.value)
+
     def list(self, rule, **kwargs):
-        """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
+        """
+        Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.list` interface.
+        """
         return rule.values()
+
     def binary_operation_logical(self, rule, left, right, **kwargs):
-        """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
+        """
+        Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.binary_operation_logical` interface.
+        """
         return self.evaluate_binop_logical(rule.operation, left, right, **kwargs)
+
     def binary_operation_comparison(self, rule, left, right, **kwargs):
-        """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
+        """
+        Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.binary_operation_comparison` interface.
+        """
         return self.evaluate_binop_comparison(rule.operation, left, right, **kwargs)
+
     def binary_operation_math(self, rule, left, right, **kwargs):
-        """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
+        """
+        Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.binary_operation_math` interface.
+        """
         return self.evaluate_binop_math(rule.operation, left, right, **kwargs)
+
     def unary_operation(self, rule, right, **kwargs):
-        """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
+        """
+        Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.unary_operation` interface.
+        """
         return self.evaluate_unop(rule.operation, right, **kwargs)
+
+
+#-------------------------------------------------------------------------------
 
 
 def compile_ip_v4(rule):
@@ -488,9 +524,9 @@ class IDEAFilterCompiler(FilteringTreeTraverser):
         Compile given filtering rule into format appropriate for processing IDEA
         messages.
 
-        :param Rule rule: filtering rule to be compiled
+        :param pynspect.rules.Rule rule: filtering rule to be compiled
         :return: compiled filtering rule
-        :rtype: Rule
+        :rtype: pynspect.rules.Rule
         """
         return rule.traverse(self)
 
@@ -499,43 +535,61 @@ class IDEAFilterCompiler(FilteringTreeTraverser):
 
 
     def ipv4(self, rule, **kwargs):
-        """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
+        """
+        Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.ipv4` interface.
+        """
         rule = compile_ip_v4(rule)
         return rule
 
     def ipv6(self, rule, **kwargs):
-        """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
+        """
+        Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.ipv6` interface.
+        """
         rule = compile_ip_v4(rule)
         return rule
 
     def datetime(self, rule, **kwargs):
-        """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
+        """
+        Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.datetime` interface.
+        """
         rule = compile_datetime(rule)
         return rule
 
     def integer(self, rule, **kwargs):
-        """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
+        """
+        Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.integer` interface.
+        """
         rule.value = int(rule.value)
         return rule
 
     def constant(self, rule, **kwargs):
-        """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
+        """
+        Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.constant` interface.
+        """
         return rule
 
     def variable(self, rule, **kwargs):
-        """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
+        """
+        Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.variable` interface.
+        """
         return rule
 
     def list(self, rule, **kwargs):
-        """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
+        """
+        Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.list` interface.
+        """
         return rule
 
     def binary_operation_logical(self, rule, left, right, **kwargs):
-        """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
+        """
+        Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.binary_operation_logical` interface.
+        """
         return LogicalBinOpRule(rule.operation, left, right)
 
     def binary_operation_comparison(self, rule, left, right, **kwargs):
-        """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
+        """
+        Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.binary_operation_comparison` interface.
+        """
         var = val = None
         if isinstance(left, VariableRule) and not isinstance(right, VariableRule):
             var = left
@@ -558,7 +612,9 @@ class IDEAFilterCompiler(FilteringTreeTraverser):
         return ComparisonBinOpRule(rule.operation, left, right)
 
     def binary_operation_math(self, rule, left, right, **kwargs):
-        """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
+        """
+        Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.binary_operation_math` interface.
+        """
         if isinstance(left, IntegerRule) and isinstance(right, IntegerRule):
             result = self.evaluate_binop_math(rule.operation, left.value, right.value)
             if isinstance(result, list):
@@ -572,8 +628,13 @@ class IDEAFilterCompiler(FilteringTreeTraverser):
         return MathBinOpRule(rule.operation, left, right)
 
     def unary_operation(self, rule, right, **kwargs):
-        """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
+        """
+        Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.unary_operation` interface.
+        """
         return UnaryOperationRule(rule.operation, right)
+
+
+#-------------------------------------------------------------------------------
 
 
 #

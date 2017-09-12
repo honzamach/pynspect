@@ -66,11 +66,14 @@ import calendar
 
 
 import ipranges
-from pynspect.rules import IPV4Rule, IPV6Rule, IntegerRule, FloatRule, NumberRule, VariableRule,\
+from pynspect.rules import IPV4Rule, IPV6Rule, DatetimeRule, IntegerRule, FloatRule, NumberRule, VariableRule,\
     LogicalBinOpRule, UnaryOperationRule, ComparisonBinOpRule, MathBinOpRule, ListRule,\
     FilteringRuleException
 from pynspect.traversers import RuleTreeTraverser
 from pynspect.jpath import jpath_values
+
+
+TIMESTAMP_RE = re.compile(r"^([0-9]{4})-([0-9]{2})-([0-9]{2})[Tt]([0-9]{2}):([0-9]{2}):([0-9]{2})(?:\.([0-9]+))?([Zz]|(?:[+-][0-9]{2}:[0-9]{2}))$")
 
 
 def py2_timestamp(val):
@@ -298,6 +301,9 @@ class DataObjectFilter(FilteringTreeTraverser):
     def ipv6(self, rule, **kwargs):
         """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
         return rule.value
+    def datetime(self, rule, **kwargs):
+        """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
+        return rule.value
     def integer(self, rule, **kwargs):
         """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
         return rule.value
@@ -341,10 +347,35 @@ def compile_ip_v6(rule):
     operators.
     """
     if isinstance(rule.value, ipranges.Range):
-        print("IPv6 {} already compiled".format(rule.value))
         return rule
-    print("Compiling IPv6 {} to Range object".format(rule.value))
     return IPV6Rule(ipranges.from_str_v6(rule.value))
+
+def compile_datetime(rule):
+    """
+    Compiler helper method: attempt to compile constant into object representing
+    datetime object to enable relations and thus simple comparisons using Python
+    operators.
+    """
+    if isinstance(rule.value, datetime.datetime):
+        return rule
+    try:
+        # Try numeric type
+        return DatetimeRule(datetime.datetime.fromtimestamp(float(rule.value)))
+    except (TypeError, ValueError):
+        pass
+    # Try RFC3339 string
+    res = TIMESTAMP_RE.match(str(rule.value))
+    if res is not None:
+        year, month, day, hour, minute, second = (int(n or 0) for n in res.group(*range(1, 7)))
+        us_str = (res.group(7) or "0")[:6].ljust(6, "0")
+        us = int(us_str)
+        zonestr = res.group(8)
+        zonespl = (0, 0) if zonestr in ['z', 'Z'] else [int(i) for i in zonestr.split(":")]
+        zonediff = datetime.timedelta(minutes = zonespl[0]*60+zonespl[1])
+        return DatetimeRule(datetime.datetime(year, month, day, hour, minute, second, us) - zonediff)
+    else:
+        raise ValueError("Wrong Timestamp")
+
 
 CVRE = re.compile(r'\[\d+\]')
 def clean_variable(var):
@@ -423,10 +454,16 @@ class IPListRule(ListRule):
 
 
 COMPILATIONS_IDEA_OBJECT = {
-    'Source.IP4': {'comp_i': compile_ip_v4, 'comp_l': IPListRule },
-    'Target.IP4': {'comp_i': compile_ip_v4, 'comp_l': IPListRule },
-    'Source.IP6': {'comp_i': compile_ip_v6, 'comp_l': IPListRule },
-    'Target.IP6': {'comp_i': compile_ip_v6, 'comp_l': IPListRule },
+    'CreateTime':   {'comp_i': compile_datetime, 'comp_l': ListRule },
+    'DetectTime':   {'comp_i': compile_datetime, 'comp_l': ListRule },
+    'EventTime':    {'comp_i': compile_datetime, 'comp_l': ListRule },
+    'CeaseTime':    {'comp_i': compile_datetime, 'comp_l': ListRule },
+    'WinStartTime': {'comp_i': compile_datetime, 'comp_l': ListRule },
+    'WinEndTime':   {'comp_i': compile_datetime, 'comp_l': ListRule },
+    'Source.IP4':   {'comp_i': compile_ip_v4,    'comp_l': IPListRule },
+    'Target.IP4':   {'comp_i': compile_ip_v4,    'comp_l': IPListRule },
+    'Source.IP6':   {'comp_i': compile_ip_v6,    'comp_l': IPListRule },
+    'Target.IP6':   {'comp_i': compile_ip_v6,    'comp_l': IPListRule },
 }
 
 
@@ -469,6 +506,11 @@ class IDEAFilterCompiler(FilteringTreeTraverser):
     def ipv6(self, rule, **kwargs):
         """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
         rule = compile_ip_v4(rule)
+        return rule
+
+    def datetime(self, rule, **kwargs):
+        """Implementation of :py:class:`pynspect.rules.RuleTreeTraverser` interface"""
+        rule = compile_datetime(rule)
         return rule
 
     def integer(self, rule, **kwargs):

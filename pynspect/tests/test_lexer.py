@@ -101,6 +101,16 @@ class TestPynspectFilterLexer(unittest.TestCase):
         self.assertEqual(self.lex.test('15'),   "LexToken(INTEGER,('INTEGER', 15),1,0)")
         self.assertEqual(self.lex.test('15.5'), "LexToken(FLOAT,('FLOAT', 15.5),1,0)")
 
+        self.assertEqual(self.lex.test('2017-01-01T12:00:00Z'),     "LexToken(DATETIME,('DATETIME', '2017-01-01T12:00:00Z'),1,0)")
+        self.assertEqual(self.lex.test('2017-01-01t12:00:00z'),     "LexToken(DATETIME,('DATETIME', '2017-01-01t12:00:00z'),1,0)")
+        self.assertEqual(self.lex.test('2017-01-01T12:00:00.123Z'), "LexToken(DATETIME,('DATETIME', '2017-01-01T12:00:00.123Z'),1,0)")
+        self.assertEqual(self.lex.test('2017-01-01t12:00:00.123z'), "LexToken(DATETIME,('DATETIME', '2017-01-01t12:00:00.123z'),1,0)")
+
+        self.assertEqual(self.lex.test('2017-01-01T12:00:00+02:00'),     "LexToken(DATETIME,('DATETIME', '2017-01-01T12:00:00+02:00'),1,0)")
+        self.assertEqual(self.lex.test('2017-01-01t12:00:00-02:00'),     "LexToken(DATETIME,('DATETIME', '2017-01-01t12:00:00-02:00'),1,0)")
+        self.assertEqual(self.lex.test('2017-01-01T12:00:00.123+02:00'), "LexToken(DATETIME,('DATETIME', '2017-01-01T12:00:00.123+02:00'),1,0)")
+        self.assertEqual(self.lex.test('2017-01-01t12:00:00.123-02:00'), "LexToken(DATETIME,('DATETIME', '2017-01-01t12:00:00.123-02:00'),1,0)")
+
     def test_04_variables(self):
         """
         Check, that all lexical tokens for variables are correctly recognized.

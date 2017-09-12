@@ -56,6 +56,16 @@ class RuleTreeTraverser():
         """
         raise NotImplementedError()
 
+    def datetime(self, rule, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.DatetimeRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param dict kwargs: Optional callback arguments.
+        """
+        raise NotImplementedError()
+
     def integer(self, rule, **kwargs):
         """
         Callback method for rule tree traversing. Will be called at proper time
@@ -188,6 +198,16 @@ class PrintingTreeTraverser(RuleTreeTraverser):
         :param dict kwargs: Optional callback arguments.
         """
         return "IPV6({})".format(rule.value)
+
+    def datetime(self, rule, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.DatetimeRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param dict kwargs: Optional callback arguments.
+        """
+        return "DATETIME({})".format(rule.value)
 
     def integer(self, rule, **kwargs):
         """

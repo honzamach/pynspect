@@ -138,7 +138,7 @@ import logging
 import ply.yacc
 
 from pynspect.lexer import PynspectFilterLexer
-from pynspect.rules import IPV4Rule, IPV6Rule, IntegerRule, FloatRule, VariableRule, ConstantRule,\
+from pynspect.rules import IPV4Rule, IPV6Rule, DatetimeRule, IntegerRule, FloatRule, VariableRule, ConstantRule,\
     LogicalBinOpRule, UnaryOperationRule, ComparisonBinOpRule, MathBinOpRule, FunctionRule, ListRule
 
 
@@ -200,6 +200,8 @@ class PynspectFilterParser():
             return IPV4Rule(tok[1])
         if tok[0] == 'IPV6':
             return IPV6Rule(tok[1])
+        if tok[0] == 'DATETIME':
+            return DatetimeRule(tok[1])
         if tok[0] == 'INTEGER':
             return IntegerRule(tok[1])
         if tok[0] == 'FLOAT':
@@ -324,6 +326,7 @@ class PynspectFilterParser():
     def p_factor(self, tok):
         """factor : IPV4
                   | IPV6
+                  | DATETIME
                   | INTEGER
                   | FLOAT
                   | VARIABLE
@@ -344,12 +347,14 @@ class PynspectFilterParser():
     def p_list(self, tok):
         """list : IPV4
                 | IPV6
+                | DATETIME
                 | INTEGER
                 | FLOAT
                 | VARIABLE
                 | CONSTANT
                 | IPV4 COMMA list
                 | IPV6 COMMA list
+                | DATETIME COMMA list
                 | INTEGER COMMA list
                 | FLOAT COMMA list
                 | VARIABLE COMMA list

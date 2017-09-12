@@ -193,6 +193,7 @@ class PynspectFilterLexer():
 
         'IPV4',
         'IPV6',
+        'DATETIME',
         'INTEGER',
         'FLOAT',
         'CONSTANT',
@@ -254,6 +255,11 @@ class PynspectFilterLexer():
 
     def t_IPV6(self, tok):
         r'[:a-fA-F0-9]+:[:a-fA-F0-9]*(?:\/\d{1,3}|(?:-|..)[:a-fA-F0-9]+:[:a-fA-F0-9]*)?'
+        tok.value = (tok.type, tok.value)
+        return tok
+
+    def t_DATETIME(self, tok):
+        r'[0-9]{4}-[0-9]{2}-[0-9]{2}[Tt][0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?(?:[Zz]|(?:[+-][0-9]{2}:[0-9]{2}))'
         tok.value = (tok.type, tok.value)
         return tok
 

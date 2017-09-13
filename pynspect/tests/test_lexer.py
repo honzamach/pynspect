@@ -134,6 +134,7 @@ class TestPynspectFilterLexer(unittest.TestCase):
 
         self.assertEqual(self.lex.test('[127.0.0.1 , 127.0.0.2]'), "LexToken(LBRACK,'[',1,0)LexToken(IPV4,('IPV4', '127.0.0.1'),1,1)LexToken(COMMA,', ',1,11)LexToken(IPV4,('IPV4', '127.0.0.2'),1,13)LexToken(RBRACK,']',1,22)")
         self.assertEqual(self.lex.test('[::1 , ::2]'), "LexToken(LBRACK,'[',1,0)LexToken(IPV6,('IPV6', '::1'),1,1)LexToken(COMMA,', ',1,5)LexToken(IPV6,('IPV6', '::2'),1,7)LexToken(RBRACK,']',1,10)")
+        self.assertEqual(self.lex.test('[2017-01-01T12:00:00Z, 2017-01-01T12:00:00+02:00]'), "LexToken(LBRACK,'[',1,0)LexToken(DATETIME,('DATETIME', '2017-01-01T12:00:00Z'),1,1)LexToken(COMMA,', ',1,21)LexToken(DATETIME,('DATETIME', '2017-01-01T12:00:00+02:00'),1,23)LexToken(RBRACK,']',1,48)")
         self.assertEqual(self.lex.test('[1,2, 3,4 , 5 ]'), "LexToken(LBRACK,'[',1,0)LexToken(INTEGER,('INTEGER', 1),1,1)LexToken(COMMA,',',1,2)LexToken(INTEGER,('INTEGER', 2),1,3)LexToken(COMMA,', ',1,4)LexToken(INTEGER,('INTEGER', 3),1,6)LexToken(COMMA,',',1,7)LexToken(INTEGER,('INTEGER', 4),1,8)LexToken(COMMA,', ',1,10)LexToken(INTEGER,('INTEGER', 5),1,12)LexToken(RBRACK,']',1,14)")
         self.assertEqual(self.lex.test('[15.5,16.6, 17.7,18.8 , 19.9 ]'), "LexToken(LBRACK,'[',1,0)LexToken(FLOAT,('FLOAT', 15.5),1,1)LexToken(COMMA,',',1,5)LexToken(FLOAT,('FLOAT', 16.6),1,6)LexToken(COMMA,', ',1,10)LexToken(FLOAT,('FLOAT', 17.7),1,12)LexToken(COMMA,',',1,16)LexToken(FLOAT,('FLOAT', 18.8),1,17)LexToken(COMMA,', ',1,22)LexToken(FLOAT,('FLOAT', 19.9),1,24)LexToken(RBRACK,']',1,29)")
         self.assertEqual(self.lex.test('[Test.Node1,Test.Node2, Test.Node3,Test.Node4 , Test.Node5 ]'), "LexToken(LBRACK,'[',1,0)LexToken(VARIABLE,('VARIABLE', 'Test.Node1'),1,1)LexToken(COMMA,',',1,11)LexToken(VARIABLE,('VARIABLE', 'Test.Node2'),1,12)LexToken(COMMA,', ',1,22)LexToken(VARIABLE,('VARIABLE', 'Test.Node3'),1,24)LexToken(COMMA,',',1,34)LexToken(VARIABLE,('VARIABLE', 'Test.Node4'),1,35)LexToken(COMMA,', ',1,46)LexToken(VARIABLE,('VARIABLE', 'Test.Node5'),1,48)LexToken(RBRACK,']',1,59)")
@@ -152,9 +153,12 @@ class TestPynspectFilterLexer(unittest.TestCase):
         """
         self.maxDiff = None
 
-        self.assertEqual(self.lex.test('___('), "LexToken(FUNCTION,('FUNCTION', '___'),1,0)")
-        self.assertEqual(self.lex.test('_ab('), "LexToken(FUNCTION,('FUNCTION', '_ab'),1,0)")
-        self.assertEqual(self.lex.test('_AB('), "LexToken(FUNCTION,('FUNCTION', '_AB'),1,0)")
+        self.assertEqual(self.lex.test('___('),  "LexToken(FUNCTION,('FUNCTION', '___'),1,0)")
+        self.assertEqual(self.lex.test('_ab('),  "LexToken(FUNCTION,('FUNCTION', '_ab'),1,0)")
+        self.assertEqual(self.lex.test('_AB('),  "LexToken(FUNCTION,('FUNCTION', '_AB'),1,0)")
+        self.assertEqual(self.lex.test('___1('), "LexToken(FUNCTION,('FUNCTION', '___1'),1,0)")
+        self.assertEqual(self.lex.test('_ab2('), "LexToken(FUNCTION,('FUNCTION', '_ab2'),1,0)")
+        self.assertEqual(self.lex.test('_AB3('), "LexToken(FUNCTION,('FUNCTION', '_AB3'),1,0)")
 
 
 #-------------------------------------------------------------------------------

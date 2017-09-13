@@ -29,12 +29,8 @@ sys.path.insert(0, os.path.abspath('.'))
 import pynspect
 
 # Generate parsetab.py in advance so it can go into package.
-from pynspect.jpath import *
-from pynspect.rules import *
-from pynspect.gparser import MentatFilterParser
-from pynspect.filters import DataObjectFilter
-
-parser = MentatFilterParser()
+from pynspect.gparser import PynspectFilterParser
+parser = PynspectFilterParser()
 parser.build()
 
 here = os.path.abspath(os.path.dirname(__file__))

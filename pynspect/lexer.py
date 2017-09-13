@@ -212,6 +212,9 @@ class PynspectFilterLexer():
     t_ignore = ' \t'
 
 
+    def __init__(self):
+        self.lexer = None
+
     def build(self, **kwargs):
         """
         Build/rebuild the lexer object.
@@ -248,51 +251,61 @@ class PynspectFilterLexer():
         tok.value = tok.type
         return tok
 
-    def t_IPV4(self, tok):
+    @staticmethod
+    def t_IPV4(tok):
         r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?:\/\d{1,2}|(?:-|..)\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})?'
         tok.value = (tok.type, tok.value)
         return tok
 
-    def t_IPV6(self, tok):
+    @staticmethod
+    def t_IPV6(tok):
         r'[:a-fA-F0-9]+:[:a-fA-F0-9]*(?:\/\d{1,3}|(?:-|..)[:a-fA-F0-9]+:[:a-fA-F0-9]*)?'
         tok.value = (tok.type, tok.value)
         return tok
 
-    def t_DATETIME(self, tok):
+    @staticmethod
+    def t_DATETIME(tok):
         r'[0-9]{4}-[0-9]{2}-[0-9]{2}[Tt][0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?(?:[Zz]|(?:[+-][0-9]{2}:[0-9]{2}))'
         tok.value = (tok.type, tok.value)
         return tok
 
-    def t_FLOAT(self, tok):
+    @staticmethod
+    def t_FLOAT(tok):
         r'\d+\.\d+'
         tok.value = (tok.type, float(tok.value))
         return tok
 
-    def t_INTEGER(self, tok):
+    @staticmethod
+    def t_INTEGER(tok):
         r'\d+'
         tok.value = (tok.type, int(tok.value))
         return tok
 
-    def t_FUNCTION(self, tok):
+    @staticmethod
+    def t_FUNCTION(tok):
         r'[_a-zA-Z][_a-zA-Z0-9]{2,}\('
         tok.value = (tok.type, tok.value[:-1])
         return tok
 
-    def t_VARIABLE(self, tok):
+    @staticmethod
+    def t_VARIABLE(tok):
         r'[_a-zA-Z][-_a-zA-Z0-9]*(?:\[(?:\d+|-\d+|\#)\])?(?:\.?[a-zA-Z][-_a-zA-Z0-9]*(?:\[(?:\d+|-\d+|\#)\])?)*'
         tok.value = (tok.type, tok.value)
         return tok
 
-    def t_CONSTANT(self, tok):
+    @staticmethod
+    def t_CONSTANT(tok):
         r'"([^"]+)"|\'([^\']+)\''
         tok.value = (tok.type, re.sub('["\']', '', tok.value))
         return tok
 
-    def t_newline(self, tok):
+    @staticmethod
+    def t_newline(tok):
         r'\n+'
         tok.lexer.lineno += len(tok.value)
 
-    def t_error(self, tok):
+    @staticmethod
+    def t_error(tok):
         print("Illegal character '%s'" % tok.value[0])
         tok.lexer.skip(1)
 

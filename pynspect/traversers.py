@@ -356,7 +356,7 @@ def _to_numeric(val):
     if isinstance(val, datetime.datetime):
         try:
             return val.timestamp()
-        except:
+        except AttributeError:
             # python 2 compatibility
             return _py2_timestamp(val)
 
@@ -365,18 +365,24 @@ def _to_numeric(val):
 
 class ListIP(collections.MutableSequence):
     """
-
+    Special list implementation designed to provide special handling of 'IN' operator.
+    When item is being compared using 'IN' operator with this list, the IN operation
+    is propagated down to each of the items in the list.
     """
+
     def __init__(self, iterable = None):
         self.data = list()
         if iterable:
             self.extend(iterable)
 
-    def __getitem__(self, val): return self.data[val]
+    def __getitem__(self, val):
+        return self.data[val]
 
-    def __delitem__(self, val): del self.data[val]
+    def __delitem__(self, val):
+        del self.data[val]
 
-    def __len__(self): return len(self.data)
+    def __len__(self):
+        return len(self.data)
 
     def __setitem__(self, idx, val):
         self.data[idx] = val
@@ -400,17 +406,23 @@ class ListIP(collections.MutableSequence):
     def count(self, val):
         return self.data.count(val)
 
-    def __iter__(self): return iter(self.data)
+    def __iter__(self):
+        return iter(self.data)
 
-    def reverse(self): return self.data.reverse()
+    def reverse(self):
+        return self.data.reverse()
 
-    def __reversed__(self): return reversed(self.data)
+    def __reversed__(self):
+        return reversed(self.data)
 
-    def pop(self, index=-1): return self.data.pop(index)
+    def pop(self, index=-1):
+        return self.data.pop(index)
 
-    def __str__(self): return "%s(%s)" % (type(self).__name__, str(self.data))
+    def __str__(self):
+        return "%s(%s)" % (type(self).__name__, str(self.data))
 
-    def __repr__(self): return "%s(%s)" % (type(self).__name__, repr(self.data))
+    def __repr__(self):
+        return "%s(%s)" % (type(self).__name__, repr(self.data))
 
 
 class BaseFilteringTreeTraverser(BaseRuleTreeTraverser):
@@ -587,13 +599,13 @@ class BaseFilteringTreeTraverser(BaseRuleTreeTraverser):
         """
         self.functions[name] = decorator(self.functions[name])
 
-    def function(self, rule, arguments, **kwargs):
+    def function(self, rule, args, **kwargs):
         """
         Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.function` interface.
         """
         fname = rule.function
         try:
-            return self.functions[fname](arguments)
+            return self.functions[fname](args)
         except KeyError:
             raise FilteringRuleException("Invalid function name '{}'".format(fname))
 

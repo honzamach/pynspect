@@ -148,6 +148,12 @@ class PynspectFilterParser():
     query language grammar used in Mentat project.
     """
 
+    def __init__(self):
+        self.logger = None
+        self.lexer  = None
+        self.tokens = None
+        self.parser = None
+
     def build(self):
         """
         Build/rebuild the parser object

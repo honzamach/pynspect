@@ -174,6 +174,12 @@ class DataObjectFilter(BaseFilteringTreeTraverser):
         """
         return rule.value
 
+    def float(self, rule, **kwargs):
+        """
+        Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.float` interface.
+        """
+        return rule.value
+
     def constant(self, rule, **kwargs):
         """
         Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.constant` interface.

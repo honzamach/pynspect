@@ -79,13 +79,13 @@ def compile_datetime(rule):
     if res is not None:
         year, month, day, hour, minute, second = (int(n or 0) for n in res.group(*range(1, 7)))
         us_str = (res.group(7) or "0")[:6].ljust(6, "0")
-        us = int(us_str)
+        us_int = int(us_str)
         zonestr = res.group(8)
         zonespl = (0, 0) if zonestr in ['z', 'Z'] else [int(i) for i in zonestr.split(":")]
         zonediff = datetime.timedelta(minutes = zonespl[0]*60+zonespl[1])
-        return DatetimeRule(datetime.datetime(year, month, day, hour, minute, second, us) - zonediff)
+        return DatetimeRule(datetime.datetime(year, month, day, hour, minute, second, us_int) - zonediff)
     else:
-        raise ValueError("Wrong Timestamp")
+        raise ValueError("Wrong datetime format '{}'".format(rule.value))
 
 
 CVRE = re.compile(r'\[\d+\]')
@@ -101,6 +101,11 @@ def clean_variable(var):
 
 
 class IPListRule(ListRule):
+    """
+    Custom rule for lists of IP addresses/ranges/networks, that need special
+    handling in comparison operations.
+    """
+
     def __init__(self, rules):
         """
         Initialize the constant with given value.
@@ -185,6 +190,13 @@ class IDEAFilterCompiler(BaseFilteringTreeTraverser):
         Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.integer` interface.
         """
         rule.value = int(rule.value)
+        return rule
+
+    def float(self, rule, **kwargs):
+        """
+        Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.float` interface.
+        """
+        rule.value = float(rule.value)
         return rule
 
     def constant(self, rule, **kwargs):
@@ -272,4 +284,4 @@ if __name__ == "__main__":
     DEMO_DATA     = {"Test": 15, "Attr": "ABC"}
     DEMO_RULE     = ComparisonBinOpRule('OP_GT', VariableRule("Test"), IntegerRule(10))
     DEMO_COMPILER = IDEAFilterCompiler()
-    pprint.pprint(DEMO_COMPILER.compile(DEMO_RULE, DEMO_DATA))
+    pprint.pprint(DEMO_COMPILER.compile(DEMO_RULE))

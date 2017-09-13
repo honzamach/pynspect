@@ -12,11 +12,12 @@
 
 r"""
 This module contains object encapsulation of `PLY <http://www.dabeaz.com/ply/>`__
-lexical analyzer for filtering and query language grammar used in Mentat
-project.
+lexical analyzer for universal filtering and query language grammar. It is designed
+for working with almost arbitrary data structures and can be used in wide range
+of projects.
 
-Currently recognized tokens
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Currently recognized grammar tokens
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: python
 
@@ -60,6 +61,7 @@ Currently recognized tokens
     # Contant and variable tokens.
     IPV4     = r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?:\/\d{1,2}|(?:-|..)\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})?'
     IPV6     = r'[:a-fA-F0-9]+:[:a-fA-F0-9]*(?:\/\d{1,3}|(?:-|..)[:a-fA-F0-9]+:[:a-fA-F0-9]*)?'
+    DATETIME = r'[0-9]{4}-[0-9]{2}-[0-9]{2}[Tt][0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?(?:[Zz]|(?:[+-][0-9]{2}:[0-9]{2}))'
     INTEGER  = r'\d+'
     FLOAT    = r'\d+\.\d+'
     CONSTANT = r'"([^"]+)"|\'([^\']+)\''
@@ -70,15 +72,14 @@ Currently recognized tokens
 
     Implementation of this module is very *PLY* specific, please read the
     appropriate `documentation <http://www.dabeaz.com/ply/ply.html#ply_nn3>`__
-    to understand it.
+    to understand it. For the same reason the `pylint <https://pylint.readthedocs.io/en/latest/>`__
+    tool comlains a lot about code style in this module, but that is a feature.
 
 .. todo::
 
     Consider following options:
 
     * Support for negative integers and floats
-    * Recognize RFC timestamps as constant without quotes for better
-      time value input
     * Support for functions (count, max, min, first, last, time, etc.)
 
 """
@@ -94,8 +95,8 @@ import ply.lex as lex
 
 class PynspectFilterLexer():
     """
-    Object encapsulation of *PLY* lexical analyzer implementation for
-    filtering and query language grammar.
+    Object encapsulation of `PLY <http://www.dabeaz.com/ply/>`__ lexical analyzer
+    implementation for filtering and query language grammar.
     """
 
     # List of all reserved words.
@@ -220,12 +221,19 @@ class PynspectFilterLexer():
         Build/rebuild the lexer object.
 
         (Re)Initialize internal `PLY <http://www.dabeaz.com/ply/>`__ lexer object.
+
+        :param dict kwargs: Optional keyword arguments are passed down to underlying lex.lex object constructor.
         """
         self.lexer = lex.lex(module=self, **kwargs)
 
     def test(self, data, separator = ''):
         """
         Test the lexer on given input string.
+
+        :param str data: Test data.
+        :param str separator: Token separator in generated output for better look.
+        :return: String containing all found tokens.
+        :rtype: str
         """
         self.lexer.input(data)
         result = ''
@@ -356,7 +364,7 @@ if __name__ == "__main__":
         func3("argument")
     """
 
-    # Build the lexer and try it out
+    # Build the lexer and try it out.
     DEMO_LEXER = PynspectFilterLexer()
     DEMO_LEXER.build()
     print(DEMO_LEXER.test(TEST_DATA, "\n"))

@@ -96,15 +96,46 @@ class DataObjectFilter(BaseFilteringTreeTraverser):
     >>> rule = psr.parse('ID like "e214d2d9"')
     >>> result = flt.filter(rule, test_msg)
 
-    Alternativelly rule tree can be created by hand/programatically:
+    You may use the built-in shortcuts for parsing and compiling rules:
+
+    >>> flt = DataObjectFilter(
+    ...     parser   = PynspectFilterParser,
+    ...     compiler = IDEAFilterCompiler
+    ... )
+    >>> rule   = flt.prepare('(Source.IP4 == 188.14.166.39)')
+    >>> result = flt.filter(rule, test_msg)
+
+    Rule tree can be created by hand/programatically:
 
     >>> rule = ComparisonBinOpRule('OP_GT', VariableRule("ConnCount"), IntegerRule(1))
-    >>> result = flt.filter(rule, test_msg1)
+    >>> result = flt.filter(rule, test_msg)
     """
 
-    def __init__(self):
+    def __init__(self, parser = None, compiler = None):
         super().__init__()
         self.register_function('size', grfcbk_size)
+
+        self.parser   = parser
+        self.compiler = compiler
+
+        if callable(self.parser):
+            self.parser = self.parser()
+            self.parser.build()
+        if callable(self.compiler):
+            self.compiler = self.compiler()
+
+    def prepare(self, rule):
+        """
+        Parse and/or compile given rule into rule tree.
+
+        :param rule: Filtering grammar rule.
+        :return: Parsed and/or compiled rule.
+        """
+        if self.parser:
+            rule = self.parser.parse(rule)
+        if self.compiler:
+            rule = self.compiler.compile(rule)
+        return rule
 
     def filter(self, rule, data):
         """

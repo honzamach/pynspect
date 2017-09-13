@@ -437,6 +437,34 @@ class TestDataObjectFilterIDEA(unittest.TestCase):
         self.assertEqual(repr(rule), "COMPBINOP(VARIABLE('Source.IP4') OP_IN IPLIST(IPV4(IP4Net('188.14.166.0/24')), IPV4(IP4Net('10.0.0.0/8')), IPV4(IP4('189.14.166.41'))))")
         self.assertEqual(flt.filter(rule, msg_idea), True)
 
+    def test_06_shortcuts(self):
+        """
+        Perform tests of shortcut methods.
+        """
+        self.maxDiff = None
+
+        msg_idea = lite.Idea(self.test_msg1)
+
+        # Let the shortcut method initialize everything.
+        flt = DataObjectFilter(
+            parser   = PynspectFilterParser,
+            compiler = IDEAFilterCompiler
+        )
+        rule = flt.prepare('(Source.IP4 == 188.14.166.39)')
+        self.assertEqual(repr(rule), "COMPBINOP(VARIABLE('Source.IP4') OP_EQ IPV4(IP4('188.14.166.39')))")
+        self.assertEqual(flt.filter(rule, msg_idea), True)
+
+        # Create parser and compiler instances by hand, but register them into filter.
+        cpl = IDEAFilterCompiler()
+        psr = PynspectFilterParser()
+        psr.build()
+        flt = DataObjectFilter(
+            parser   = psr,
+            compiler = cpl
+        )
+        rule = flt.prepare('(Source.IP4 == 188.14.166.39)')
+        self.assertEqual(repr(rule), "COMPBINOP(VARIABLE('Source.IP4') OP_EQ IPV4(IP4('188.14.166.39')))")
+        self.assertEqual(flt.filter(rule, msg_idea), True)
 
 #-------------------------------------------------------------------------------
 

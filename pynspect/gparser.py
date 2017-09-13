@@ -183,7 +183,12 @@ class PynspectFilterParser():
         self.lexer = PynspectFilterLexer()
         self.lexer.build()
 
-        self.tokens = self.lexer.tokens
+        # Skip the first item in self.lexer.tokens, which is the 'EXP_ALL' token
+        # to get rid of following message:
+        # ... Token 'EXP_ALL' defined, but not used
+        # ... There is 1 unused token
+        #
+        self.tokens = self.lexer.tokens[1:]
 
         self.parser = ply.yacc.yacc(
             module=self,

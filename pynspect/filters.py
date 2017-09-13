@@ -61,6 +61,9 @@ __author__ = "Jan Mach <jan.mach@cesnet.cz>"
 __credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>"
 
 
+import time
+
+from pynspect.rules import FilteringRuleException
 from pynspect.traversers import BaseFilteringTreeTraverser
 from pynspect.jpath import jpath_values
 
@@ -78,6 +81,19 @@ def grfcbk_size(args):
     :rtype: int
     """
     return len(args[0])
+
+def grfcbk_time(args):
+    """
+    Grammar rule function callback: **time**. This function will call the
+    :py:func:`time.time` function and return the result.
+
+    :param list args: List of function arguments. Should be empty, but
+    :return: The time in seconds since the epoch as a floating point number.
+    :rtype: float
+    """
+    if args:
+        raise FilteringRuleException("The 'time' function does not take any arguments.")
+    return time.time()
 
 
 #-------------------------------------------------------------------------------
@@ -114,6 +130,7 @@ class DataObjectFilter(BaseFilteringTreeTraverser):
     def __init__(self, parser = None, compiler = None):
         super().__init__()
         self.register_function('size', grfcbk_size)
+        self.register_function('time', grfcbk_time)
 
         self.parser   = parser
         self.compiler = compiler

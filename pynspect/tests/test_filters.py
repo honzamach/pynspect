@@ -292,12 +292,6 @@ class TestDataObjectFilter(unittest.TestCase):
         rule = self.psr.parse('1')
         self.assertEqual(repr(rule), "INTEGER(1)")
         self.assertEqual(self.flt.filter(rule, self.test_msg1), True)
-        rule = self.psr.parse('(size(Node.Type) > 2)')
-        self.assertEqual(repr(rule), "COMPBINOP(FUNCTION(size(VARIABLE('Node.Type'),)) OP_GT INTEGER(2))")
-        self.assertEqual(self.flt.filter(rule, self.test_msg1), True)
-        rule = self.psr.parse('(size(Source.IP4) > 4)')
-        self.assertEqual(repr(rule), "COMPBINOP(FUNCTION(size(VARIABLE('Source.IP4'),)) OP_GT INTEGER(4))")
-        self.assertEqual(self.flt.filter(rule, self.test_msg1), False)
 
     def test_05_non_existent_nodes(self):
         """
@@ -311,6 +305,23 @@ class TestDataObjectFilter(unittest.TestCase):
         self.assertEqual(self.flt.filter(rule, self.test_msg1), None)
         rule = self.psr.parse('DetectTime < InspectionTime')
         self.assertEqual(self.flt.filter(rule, self.test_msg1), None)
+
+    def test_06_functions(self):
+        """
+        Perform advanced filtering tests.
+        """
+        self.maxDiff = None
+
+        rule = self.psr.parse('(size(Node.Type) > 2)')
+        self.assertEqual(repr(rule), "COMPBINOP(FUNCTION(size(VARIABLE('Node.Type'),)) OP_GT INTEGER(2))")
+        self.assertEqual(self.flt.filter(rule, self.test_msg1), True)
+        rule = self.psr.parse('(size(Source.IP4) > 4)')
+        self.assertEqual(repr(rule), "COMPBINOP(FUNCTION(size(VARIABLE('Source.IP4'),)) OP_GT INTEGER(4))")
+        self.assertEqual(self.flt.filter(rule, self.test_msg1), False)
+
+        rule = self.psr.parse('(time() > 500.12)')
+        self.assertEqual(repr(rule), "COMPBINOP(FUNCTION(time()) OP_GT FLOAT(500.12))")
+        self.assertEqual(self.flt.filter(rule, self.test_msg1), True)
 
 
 #-------------------------------------------------------------------------------

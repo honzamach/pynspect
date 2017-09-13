@@ -464,6 +464,9 @@ class BaseFilteringTreeTraverser(BaseRuleTreeTraverser):
     Definitions of all unary operations.
     """
 
+    def __init__(self):
+        self.functions = {}
+
     def evaluate_binop_logical(self, operation, left, right, **kwargs):
         """
         Evaluate given logical binary operation with given operands.
@@ -563,6 +566,36 @@ class BaseFilteringTreeTraverser(BaseRuleTreeTraverser):
         if right is None:
             return None
         return self.unops[operation](right)
+
+    #---------------------------------------------------------------------------
+
+    def register_function(self, name, callback):
+        """
+        Register given callback as filtering rule function with given name.
+
+        :param str name: Name of the function.
+        :param callable callback: Function callback.
+        """
+        self.functions[name] = callback
+
+    def decorate_function(self, name, decorator):
+        """
+        Decorate function with given name with given decorator.
+
+        :param str name: Name of the function.
+        :param callable decorator: Decorator callback.
+        """
+        self.functions[name] = decorator(self.functions[name])
+
+    def function(self, rule, arguments, **kwargs):
+        """
+        Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.function` interface.
+        """
+        fname = rule.function
+        try:
+            return self.functions[fname](arguments)
+        except KeyError:
+            raise FilteringRuleException("Invalid function name '{}'".format(fname))
 
 
 #-------------------------------------------------------------------------------

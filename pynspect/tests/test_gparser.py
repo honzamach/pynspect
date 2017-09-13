@@ -262,28 +262,30 @@ class TestPynspectFilterParser(unittest.TestCase):
         """
         self.maxDiff = None
 
-        self.assertEqual(repr(self.psr.parse('func()')),           "FUNCTION(func())")
-        self.assertEqual(repr(self.psr.parse('func(127.0.0.1)')),  "FUNCTION(func(IPV4('127.0.0.1'),))")
-        self.assertEqual(repr(self.psr.parse('func(::1)')),        "FUNCTION(func(IPV6('::1'),))")
-        self.assertEqual(repr(self.psr.parse('func(1)')),          "FUNCTION(func(INTEGER(1),))")
-        self.assertEqual(repr(self.psr.parse('func(1.1)')),        "FUNCTION(func(FLOAT(1.1),))")
-        self.assertEqual(repr(self.psr.parse('func(Test)')),       "FUNCTION(func(VARIABLE('Test'),))")
-        self.assertEqual(repr(self.psr.parse('func("constant")')), "FUNCTION(func(CONSTANT('constant'),))")
-        self.assertEqual(repr(self.psr.parse('func(sub())')),      "FUNCTION(func(FUNCTION(sub()),))")
+        self.assertEqual(repr(self.psr.parse('func1()')),           "FUNCTION(func1())")
+        self.assertEqual(repr(self.psr.parse('func2(127.0.0.1)')),  "FUNCTION(func2(IPV4('127.0.0.1'),))")
+        self.assertEqual(repr(self.psr.parse('func3(::1)')),        "FUNCTION(func3(IPV6('::1'),))")
+        self.assertEqual(repr(self.psr.parse('func4(1)')),          "FUNCTION(func4(INTEGER(1),))")
+        self.assertEqual(repr(self.psr.parse('func5(1.1)')),        "FUNCTION(func5(FLOAT(1.1),))")
+        self.assertEqual(repr(self.psr.parse('func6(Test)')),       "FUNCTION(func6(VARIABLE('Test'),))")
+        self.assertEqual(repr(self.psr.parse('func7(Test.Var)')),   "FUNCTION(func7(VARIABLE('Test.Var'),))")
+        self.assertEqual(repr(self.psr.parse('func8("constant")')), "FUNCTION(func8(CONSTANT('constant'),))")
+        self.assertEqual(repr(self.psr.parse('func9(sub())')),      "FUNCTION(func9(FUNCTION(sub()),))")
 
-        self.assertEqual(repr(self.psr.parse("func([127.0.0.1])")),   "FUNCTION(func(LIST(IPV4('127.0.0.1')),))")
-        self.assertEqual(repr(self.psr.parse("func([::1])")),         "FUNCTION(func(LIST(IPV6('::1')),))")
-        self.assertEqual(repr(self.psr.parse("func([1])")),           "FUNCTION(func(LIST(INTEGER(1)),))")
-        self.assertEqual(repr(self.psr.parse("func([1.1])")),         "FUNCTION(func(LIST(FLOAT(1.1)),))")
-        self.assertEqual(repr(self.psr.parse("func([Test])")),        "FUNCTION(func(LIST(VARIABLE('Test')),))")
-        self.assertEqual(repr(self.psr.parse('func(["constant1"])')), "FUNCTION(func(LIST(CONSTANT('constant1')),))")
+        self.assertEqual(repr(self.psr.parse("func1([127.0.0.1])")),   "FUNCTION(func1(LIST(IPV4('127.0.0.1')),))")
+        self.assertEqual(repr(self.psr.parse("func2([::1])")),         "FUNCTION(func2(LIST(IPV6('::1')),))")
+        self.assertEqual(repr(self.psr.parse("func3([1])")),           "FUNCTION(func3(LIST(INTEGER(1)),))")
+        self.assertEqual(repr(self.psr.parse("func4([1.1])")),         "FUNCTION(func4(LIST(FLOAT(1.1)),))")
+        self.assertEqual(repr(self.psr.parse("func5([Test])")),        "FUNCTION(func5(LIST(VARIABLE('Test')),))")
+        self.assertEqual(repr(self.psr.parse("func6([Test.Var])")),    "FUNCTION(func6(LIST(VARIABLE('Test.Var')),))")
+        self.assertEqual(repr(self.psr.parse('func7(["constant1"])')), "FUNCTION(func7(LIST(CONSTANT('constant1')),))")
 
-        self.assertEqual(repr(self.psr.parse("func([127.0.0.1 , 127.0.0.2])")),        "FUNCTION(func(LIST(IPV4('127.0.0.1'), IPV4('127.0.0.2')),))")
-        self.assertEqual(repr(self.psr.parse("func([::1 , ::2])")),                    "FUNCTION(func(LIST(IPV6('::1'), IPV6('::2')),))")
-        self.assertEqual(repr(self.psr.parse("func([1,2, 3,4 , 5])")),                 "FUNCTION(func(LIST(INTEGER(1), INTEGER(2), INTEGER(3), INTEGER(4), INTEGER(5)),))")
-        self.assertEqual(repr(self.psr.parse("func([1.1,2.2, 3.3,4.4 , 5.5])")),       "FUNCTION(func(LIST(FLOAT(1.1), FLOAT(2.2), FLOAT(3.3), FLOAT(4.4), FLOAT(5.5)),))")
-        self.assertEqual(repr(self.psr.parse("func([Var1,Var2, Var3,Var4 , Var5 ])")), "FUNCTION(func(LIST(VARIABLE('Var1'), VARIABLE('Var2'), VARIABLE('Var3'), VARIABLE('Var4'), VARIABLE('Var5')),))")
-        self.assertEqual(repr(self.psr.parse('func(["c1","c2", "c3","c4" , "c5" ])')), "FUNCTION(func(LIST(CONSTANT('c1'), CONSTANT('c2'), CONSTANT('c3'), CONSTANT('c4'), CONSTANT('c5')),))")
+        self.assertEqual(repr(self.psr.parse("func1([127.0.0.1 , 127.0.0.2])")),        "FUNCTION(func1(LIST(IPV4('127.0.0.1'), IPV4('127.0.0.2')),))")
+        self.assertEqual(repr(self.psr.parse("func2([::1 , ::2])")),                    "FUNCTION(func2(LIST(IPV6('::1'), IPV6('::2')),))")
+        self.assertEqual(repr(self.psr.parse("func3([1,2, 3,4 , 5])")),                 "FUNCTION(func3(LIST(INTEGER(1), INTEGER(2), INTEGER(3), INTEGER(4), INTEGER(5)),))")
+        self.assertEqual(repr(self.psr.parse("func4([1.1,2.2, 3.3,4.4 , 5.5])")),       "FUNCTION(func4(LIST(FLOAT(1.1), FLOAT(2.2), FLOAT(3.3), FLOAT(4.4), FLOAT(5.5)),))")
+        self.assertEqual(repr(self.psr.parse("func5([Var1,Var2, Var3,Var4 , Var5 ])")), "FUNCTION(func5(LIST(VARIABLE('Var1'), VARIABLE('Var2'), VARIABLE('Var3'), VARIABLE('Var4'), VARIABLE('Var5')),))")
+        self.assertEqual(repr(self.psr.parse('func6(["c1","c2", "c3","c4" , "c5" ])')), "FUNCTION(func6(LIST(CONSTANT('c1'), CONSTANT('c2'), CONSTANT('c3'), CONSTANT('c4'), CONSTANT('c5')),))")
 
     def test_06_advanced(self):
         """
@@ -297,6 +299,8 @@ class TestPynspectFilterParser(unittest.TestCase):
         self.assertEqual(repr(self.psr.parse('Source.IP4 in [127.0.0.1 , 127.0.0.2]')), "COMPBINOP(VARIABLE('Source.IP4') OP_IN LIST(IPV4('127.0.0.1'), IPV4('127.0.0.2')))")
         self.assertEqual(repr(self.psr.parse('(Source.IP4 eq 127.0.0.1) or (Node[#].Name is "cz.cesnet.labrea")')), "LOGBINOP(COMPBINOP(VARIABLE('Source.IP4') OP_EQ IPV4('127.0.0.1')) OP_OR COMPBINOP(VARIABLE('Node[#].Name') OP_IS CONSTANT('cz.cesnet.labrea')))")
 
+        self.assertEqual(repr(self.psr.parse('size(Category) > 5')),      "COMPBINOP(FUNCTION(size(VARIABLE('Category'),)) OP_GT INTEGER(5))")
+        self.assertEqual(repr(self.psr.parse('(size(Source.IP4) > 10)')), "COMPBINOP(FUNCTION(size(VARIABLE('Source.IP4'),)) OP_GT INTEGER(10))")
 
 #-------------------------------------------------------------------------------
 

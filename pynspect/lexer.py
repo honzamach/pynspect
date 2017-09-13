@@ -338,9 +338,9 @@ if __name__ == "__main__":
         LE 15 le 15 <= 15
         (127.0.0.1 eq ::1 eq 2001:afdc::58 eq Source.Node eq "Value 525.89:X><" eq 'Value 525.89:X><')
         [1, 2, 3 , 4]
-        function()
-        function(127.0.0.1)
-        function("argument")
+        func1()
+        func2(127.0.0.1)
+        func3("argument")
     """
 
     # Build the lexer and try it out

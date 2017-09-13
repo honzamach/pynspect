@@ -40,6 +40,13 @@ There are following main tools in this package:
 
   Tool capable of filtering data structures according to given filtering rules.
 
+.. warning::
+
+    Be carefull with the grammar function names. Currently, there is a flaw in the expression
+    grammar that forbids using function names that begin with the same characters as
+    grammar keywords like 'and', 'le', 'like', etc. For example the name 'len' is not
+    a valid function name, because there is a collision with 'le' comparison operator.
+
 .. todo::
 
     There is quite a lot of code that needs to be written before actual filtering
@@ -56,6 +63,24 @@ __credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>"
 
 from pynspect.traversers import BaseFilteringTreeTraverser
 from pynspect.jpath import jpath_values
+
+
+#-------------------------------------------------------------------------------
+
+
+def grfcbk_size(args):
+    """
+    Grammar rule function callback: **size**. This function will count the size of
+    first item in argument list.
+
+    :param list args: List of function arguments.
+    :return: Size of the first item in argument list.
+    :rtype: int
+    """
+    return len(args[0])
+
+
+#-------------------------------------------------------------------------------
 
 
 class DataObjectFilter(BaseFilteringTreeTraverser):
@@ -76,6 +101,11 @@ class DataObjectFilter(BaseFilteringTreeTraverser):
     >>> rule = ComparisonBinOpRule('OP_GT', VariableRule("ConnCount"), IntegerRule(1))
     >>> result = flt.filter(rule, test_msg1)
     """
+
+    def __init__(self):
+        super().__init__()
+        self.register_function('size', grfcbk_size)
+
     def filter(self, rule, data):
         """
         Apply given filtering rule to given data structure.

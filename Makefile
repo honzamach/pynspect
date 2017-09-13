@@ -12,8 +12,6 @@
 
 DIR_LIB = pynspect
 
-DIST_SIZE:=$(shell ls dist | wc -l)
-
 SPHINXOPTS      =
 SPHINXBUILD     = sphinx-build
 SPHINXPROJ      = Pynspect

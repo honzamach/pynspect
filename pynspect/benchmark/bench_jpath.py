@@ -22,7 +22,9 @@ __credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>"
 import random
 import string
 import timeit
+import datetime
 
+import pynspect
 from pynspect.jpath import jpath_parse, jpath_parse_c
 
 
@@ -75,7 +77,8 @@ def b004():
 #
 if __name__ == "__main__":
 
-    print("\n BENCHMARKING MENTAT.FILTERING.JPATH MODULE\n")
+    print("\n BENCHMARKING MENTAT.FILTERING.JPATH MODULE (v{})".format(pynspect.__version__))
+    print(" {}\n".format(str(datetime.datetime.now())))
 
     print("=" * 84)
     print(" {:22s} | {:16s} | {:20s} | {:20s}".format(

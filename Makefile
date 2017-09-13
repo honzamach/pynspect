@@ -160,7 +160,7 @@ test: FORCE
 
 benchmark: FORCE
 	@echo "\n${GREEN}*** Running code benchmarks ***${NC}\n"
-	@PYTHONPATH=. python3 pynspect/benchmark/bench_jpath.py
+	@PYTHONPATH=. python3 pynspect/benchmark/bench_jpath.py | tee bench_jpath.py.out
 
 
 #-------------------------------------------------------------------------------

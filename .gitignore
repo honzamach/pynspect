@@ -15,6 +15,7 @@
 *.txz
 *.deb
 *.whl
+*.out
 
 # Python related stuff.
 *.pyc

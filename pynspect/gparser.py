@@ -10,9 +10,12 @@
 #-------------------------------------------------------------------------------
 
 
-"""
+r"""
 This module contains object encapsulation of `PLY <http://www.dabeaz.com/ply/>`__
-parser for filtering and query language grammar used in Mentat project.
+parser for universal filtering and query language grammar. It is designed
+for working with almost arbitrary data structures and can be used in wide range
+of projects.
+
 
 Grammar features
 ^^^^^^^^^^^^^^^^
@@ -21,12 +24,13 @@ Grammar features
 
   All logical operations support upper case and lower case name variants.
   Additionally, there are also symbolic variants ``|| ^^ && ! ?`` with higher
-  priority and which can be used in some cases instead of parentheses.
+  priority and which can be used in some cases instead of parentheses and thus
+  improve parsing performance.
 
 * Comparison operations: ``like in is eq ne gt ge lt le``
 
   All comparison operations support upper case and lower case name variants.
-  Additionally, there are also symbolic variants.
+  Additionally, there are also symbolic variants ``=~ ~~ == != <> >= > <= <``.
 
 * Mathematical operations: ``+ - * / %``
 * JPath variables: ``Source[0].IP4[1]``
@@ -34,21 +38,33 @@ Grammar features
 
     * IPv4: ``127.0.0.1 127.0.0.1/32 127.0.0.1-127.0.0.5 127.0.0.1..127.0.0.5``
     * IPv6: ``::1 ::1/64 ::1-::5 ::1..::5``
-    * integer: ``0 1 42``
-    * float: ``3.14159``
+    * Datetime: ``2017-01-01T12:00:00Z 2017-01-01t12:00:00.123-02:00``
+    * Integer: ``0 1 42``
+    * Float: ``3.14159``
 
-* Quoted literal constants: ``"double quotes"`` or ``'single quotes'``
+* Quoted literal constants: ``"double quoted"`` or ``'single quoted'``
 
-* Functions
+* Functions: ``time() size(Source.IP4)``
 
   Grammar supports calling arbitrary functions with optional arguments. Argument
   may be any valid expression, multiple arguments must be passed down as list.
   Function support in grammar is only one part of the whole picture, it must also
-  be implemented in tree traversers to work. Each traverser may provide certain set
-  available functions and define required and optional arguments.
+  be implemented in tree traversers to fully work. Each traverser may provide
+  certain set of available functions and define required and optional arguments.
 
 For more details on supported grammar token syntax please see the documentation
 of :py:mod:`pynspect.lexer` module.
+
+
+Example expressions
+^^^^^^^^^^^^^^^^^^^
+
+.. code-block::
+
+    time() > (CreateTime + 3600)
+    CreateTime > 2017-01-01T12:00:00Z and Source.IP4 in [127.0.0.1, 127.0.0.2]
+    Category in ['Attempt.Login'] and (Target.Proto in ['telnet'] or Source.Proto in ['telnet'] or Target.Port in [23])
+
 
 Currently implemented grammar
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -99,6 +115,7 @@ Currently implemented grammar
 
     factor : IPV4
            | IPV6
+           | DATETIME
            | INTEGER
            | FLOAT
            | VARIABLE
@@ -110,12 +127,14 @@ Currently implemented grammar
 
     list : IPV4
          | IPV6
+         | DATETIME
          | INTEGER
          | FLOAT
          | VARIABLE
          | CONSTANT
          | IPV4 COMMA list
          | IPV6 COMMA list
+         | DATETIME COMMA list
          | INTEGER COMMA list
          | FLOAT COMMA list
          | VARIABLE COMMA list
@@ -125,7 +144,8 @@ Currently implemented grammar
 
     Implementation of this module is very *PLY* specific, please read the
     appropriate `documentation <http://www.dabeaz.com/ply/ply.html#ply_nn3>`__
-    to understand it.
+    to understand it. For the same reason the `pylint <https://pylint.readthedocs.io/en/latest/>`__
+    tool comlains a lot about code style in this module, but that is a feature.
 
 """
 

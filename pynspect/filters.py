@@ -185,6 +185,12 @@ class DataObjectFilter(BaseFilteringTreeTraverser):
         """
         return rule.value
 
+    def timedelta(self, rule, **kwargs):
+        """
+        Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.timedelta` interface.
+        """
+        return rule.value
+
     def integer(self, rule, **kwargs):
         """
         Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.integer` interface.

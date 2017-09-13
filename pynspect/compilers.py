@@ -33,8 +33,8 @@ import datetime
 
 
 import ipranges
-from pynspect.rules import IPV4Rule, IPV6Rule, DatetimeRule, IntegerRule, FloatRule, NumberRule, VariableRule,\
-    LogicalBinOpRule, UnaryOperationRule, ComparisonBinOpRule, MathBinOpRule, ListRule
+from pynspect.rules import IPV4Rule, IPV6Rule, DatetimeRule, TimedeltaRule, IntegerRule, FloatRule, NumberRule, VariableRule,\
+    LogicalBinOpRule, UnaryOperationRule, ComparisonBinOpRule, MathBinOpRule, ConstantRule, ListRule
 from pynspect.traversers import ListIP, BaseFilteringTreeTraverser
 
 
@@ -87,11 +87,37 @@ def compile_datetime(rule):
     else:
         raise ValueError("Wrong datetime format '{}'".format(rule.value))
 
+def compile_timedelta(rule):
+    """
+    Compiler helper method: attempt to compile constant into object representing
+    datetime or timedelta object to enable relations and thus simple comparisons
+    using Python operators.
+    """
+    if isinstance(rule.value, datetime.timedelta):
+        return rule
+    try:
+        return TimedeltaRule(datetime.timedelta(seconds = int(rule.value)))
+    except:
+        pass
+    else:
+        raise ValueError("Wrong timedelta format '{}'".format(rule.value))
+
+def compile_timeoper(rule):
+    """
+
+    """
+    if isinstance(rule.value, (datetime.datetime, datetime.timedelta)):
+        return rule
+    if isinstance(rule, NumberRule):
+        return compile_timedelta(rule)
+    if isinstance(rule, ConstantRule):
+        return compile_datetime(rule)
+    raise ValueError("Wrong math time operation operand '{}'".format(rule))
 
 CVRE = re.compile(r'\[\d+\]')
 def clean_variable(var):
     """
-    Remove any array indices from variable name to enable indexing into :py:data:`COMPILATIONS_IDEA_OBJECT`
+    Remove any array indices from variable name to enable indexing into :py:data:`COMPILATIONS_IDEA_OBJECT_CMP`
     callback dictionary.
 
     This dictionary contains postprocessing callback appropriate for opposing
@@ -119,19 +145,27 @@ class IPListRule(ListRule):
         return "IPLIST({})".format(', '.join([repr(v) for v in self.value]))
 
 
-COMPILATIONS_IDEA_OBJECT = {
-    'CreateTime':   {'comp_i': compile_datetime, 'comp_l': ListRule },
-    'DetectTime':   {'comp_i': compile_datetime, 'comp_l': ListRule },
-    'EventTime':    {'comp_i': compile_datetime, 'comp_l': ListRule },
-    'CeaseTime':    {'comp_i': compile_datetime, 'comp_l': ListRule },
-    'WinStartTime': {'comp_i': compile_datetime, 'comp_l': ListRule },
-    'WinEndTime':   {'comp_i': compile_datetime, 'comp_l': ListRule },
+COMPILATIONS_IDEA_OBJECT_CMP = {
+    'CreateTime':   {'comp_i': compile_timeoper, 'comp_l': ListRule },
+    'DetectTime':   {'comp_i': compile_timeoper, 'comp_l': ListRule },
+    'EventTime':    {'comp_i': compile_timeoper, 'comp_l': ListRule },
+    'CeaseTime':    {'comp_i': compile_timeoper, 'comp_l': ListRule },
+    'WinStartTime': {'comp_i': compile_timeoper, 'comp_l': ListRule },
+    'WinEndTime':   {'comp_i': compile_timeoper, 'comp_l': ListRule },
     'Source.IP4':   {'comp_i': compile_ip_v4,    'comp_l': IPListRule },
     'Target.IP4':   {'comp_i': compile_ip_v4,    'comp_l': IPListRule },
     'Source.IP6':   {'comp_i': compile_ip_v6,    'comp_l': IPListRule },
     'Target.IP6':   {'comp_i': compile_ip_v6,    'comp_l': IPListRule },
 }
 
+COMPILATIONS_IDEA_OBJECT_MTH = {
+    'CreateTime':   {'comp_i': compile_timeoper, 'comp_l': ListRule },
+    'DetectTime':   {'comp_i': compile_timeoper, 'comp_l': ListRule },
+    'EventTime':    {'comp_i': compile_timeoper, 'comp_l': ListRule },
+    'CeaseTime':    {'comp_i': compile_timeoper, 'comp_l': ListRule },
+    'WinStartTime': {'comp_i': compile_timeoper, 'comp_l': ListRule },
+    'WinEndTime':   {'comp_i': compile_timeoper, 'comp_l': ListRule },
+}
 
 class IDEAFilterCompiler(BaseFilteringTreeTraverser):
     """
@@ -164,6 +198,50 @@ class IDEAFilterCompiler(BaseFilteringTreeTraverser):
     #---------------------------------------------------------------------------
 
 
+    def _compile_operation_rule(self, rule, left, right, compilations, result_class):
+        """
+
+        """
+        var = val = None
+        if isinstance(left, VariableRule) and not isinstance(right, VariableRule):
+            var = left
+            val = right
+        elif isinstance(right, VariableRule) and not isinstance(left, VariableRule):
+            var = right
+            val = left
+        if var and val:
+            path = clean_variable(var.value)
+            if path in compilations.keys():
+                compilation = compilations[path]
+                if isinstance(val, ListRule):
+                    result = []
+                    for itemv in val.value:
+                        result.append(compilation['comp_i'](itemv))
+
+                    right = compilation['comp_l'](result)
+                else:
+                    right = compilation['comp_i'](val)
+        return result_class(rule.operation, left, right)
+
+    def _calculate_operation_math(self, rule, left, right):
+        """
+
+        """
+        if isinstance(left, IntegerRule) and isinstance(right, IntegerRule):
+            result = self.evaluate_binop_math(rule.operation, left.value, right.value)
+            if isinstance(result, list):
+                return ListRule([IntegerRule(r) for r in result])
+            return IntegerRule(result)
+        if isinstance(left, NumberRule) and isinstance(right, NumberRule):
+            result = self.evaluate_binop_math(rule.operation, left.value, right.value)
+            if isinstance(result, list):
+                return ListRule([FloatRule(r) for r in result])
+            return FloatRule(result)
+        raise Exception()
+
+    #---------------------------------------------------------------------------
+
+
     def ipv4(self, rule, **kwargs):
         """
         Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.ipv4` interface.
@@ -183,6 +261,13 @@ class IDEAFilterCompiler(BaseFilteringTreeTraverser):
         Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.datetime` interface.
         """
         rule = compile_datetime(rule)
+        return rule
+
+    def timedelta(self, rule, **kwargs):
+        """
+        Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.timedelta` interface.
+        """
+        rule = compile_timedelta(rule)
         return rule
 
     def integer(self, rule, **kwargs):
@@ -227,42 +312,27 @@ class IDEAFilterCompiler(BaseFilteringTreeTraverser):
         """
         Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.binary_operation_comparison` interface.
         """
-        var = val = None
-        if isinstance(left, VariableRule) and not isinstance(right, VariableRule):
-            var = left
-            val = right
-        elif isinstance(right, VariableRule) and not isinstance(left, VariableRule):
-            var = right
-            val = left
-        if var and val:
-            path = clean_variable(var.value)
-            if path in COMPILATIONS_IDEA_OBJECT.keys():
-                compilation = COMPILATIONS_IDEA_OBJECT[path]
-                if isinstance(val, ListRule):
-                    result = []
-                    for itemv in val.value:
-                        result.append(compilation['comp_i'](itemv))
-
-                    right = compilation['comp_l'](result)
-                else:
-                    right = compilation['comp_i'](val)
-        return ComparisonBinOpRule(rule.operation, left, right)
+        return self._compile_operation_rule(
+            rule,
+            left,
+            right,
+            COMPILATIONS_IDEA_OBJECT_CMP,
+            ComparisonBinOpRule
+        )
 
     def binary_operation_math(self, rule, left, right, **kwargs):
         """
         Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.binary_operation_math` interface.
         """
-        if isinstance(left, IntegerRule) and isinstance(right, IntegerRule):
-            result = self.evaluate_binop_math(rule.operation, left.value, right.value)
-            if isinstance(result, list):
-                return ListRule([IntegerRule(r) for r in result])
-            return IntegerRule(result)
-        elif isinstance(left, NumberRule) and isinstance(right, NumberRule):
-            result = self.evaluate_binop_math(rule.operation, left.value, right.value)
-            if isinstance(result, list):
-                return ListRule([FloatRule(r) for r in result])
-            return FloatRule(result)
-        return MathBinOpRule(rule.operation, left, right)
+        if isinstance(left, NumberRule) and isinstance(right, NumberRule):
+            return self._calculate_operation_math(rule, left, right)
+        return self._compile_operation_rule(
+            rule,
+            left,
+            right,
+            COMPILATIONS_IDEA_OBJECT_MTH,
+            MathBinOpRule
+        )
 
     def unary_operation(self, rule, right, **kwargs):
         """

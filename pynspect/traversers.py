@@ -80,6 +80,16 @@ class BaseRuleTreeTraverser():
         """
         raise NotImplementedError()
 
+    def timedelta(self, rule, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.TimedeltaRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param dict kwargs: Optional callback arguments.
+        """
+        raise NotImplementedError()
+
     def integer(self, rule, **kwargs):
         """
         Callback method for rule tree traversing. Will be called at proper time
@@ -226,6 +236,16 @@ class PrintingTreeTraverser(BaseRuleTreeTraverser):
         """
         return "DATETIME({})".format(rule.value)
 
+    def timedelta(self, rule, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.TimedeltaRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param dict kwargs: Optional callback arguments.
+        """
+        return "TIMEDELTA({})".format(rule.value)
+
     def integer(self, rule, **kwargs):
         """
         Callback method for rule tree traversing. Will be called at proper time
@@ -359,7 +379,8 @@ def _to_numeric(val):
         except AttributeError:
             # python 2 compatibility
             return _py2_timestamp(val)
-
+    if isinstance(val, datetime.timedelta):
+        return val.total_seconds()
     return float(val)
 
 

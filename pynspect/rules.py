@@ -265,6 +265,30 @@ class DatetimeRule(ConstantRule):
         return traverser.datetime(self, **kwargs)
 
 
+class TimedeltaRule(ConstantRule):
+    """
+    Class representing filtering expression timedelta constants.
+    """
+    def __str__(self):
+        return '{}'.format(self.value)
+
+    def __repr__(self):
+        return "TIMEDELTA({})".format(repr(self.value))
+
+    def traverse(self, traverser, **kwargs):
+        """
+        Implementation of mandatory interface for traversing the whole rule tree.
+        This method will call the implementation of :py:func:`pynspect.rules.RuleTreeTraverser.timedelta`
+        method with reference to ``self`` instance as first argument. The optional
+        ``kwargs`` are passed down to traverser callback as additional arguments
+        and can be used to provide additional data or context.
+
+        :param pynspect.rules.RuleTreeTraverser traverser: Traverser object providing appropriate interface.
+        :param dict kwargs: Additional optional keyword arguments to be passed down to traverser callback.
+        """
+        return traverser.timedelta(self, **kwargs)
+
+
 class NumberRule(ConstantRule):
     """
     Base class for all filtering expression numerical constants.
@@ -559,6 +583,9 @@ if __name__ == "__main__":
     RULE_DATETIME = DatetimeRule("2017-01-01T12:00:00Z")
     print("STR:  {}".format(str(RULE_DATETIME)))
     print("REPR: {}".format(repr(RULE_DATETIME)))
+    RULE_TIMEDELTA = TimedeltaRule(3600.30)
+    print("STR:  {}".format(str(RULE_TIMEDELTA)))
+    print("REPR: {}".format(repr(RULE_TIMEDELTA)))
     RULE_INTEGER = IntegerRule(15)
     print("STR:  {}".format(str(RULE_INTEGER)))
     print("REPR: {}".format(repr(RULE_INTEGER)))

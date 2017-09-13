@@ -22,8 +22,9 @@ __credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>"
 import unittest
 from pprint import pformat
 
-from pynspect.rules import IPV4Rule, IPV6Rule, DatetimeRule, IntegerRule, FloatRule, VariableRule, ConstantRule,\
-    LogicalBinOpRule, UnaryOperationRule, ComparisonBinOpRule, MathBinOpRule, FunctionRule, ListRule
+from pynspect.rules import IPV4Rule, IPV6Rule, DatetimeRule, TimedeltaRule,\
+    IntegerRule, FloatRule, VariableRule, ConstantRule, LogicalBinOpRule,\
+    UnaryOperationRule, ComparisonBinOpRule, MathBinOpRule, FunctionRule, ListRule
 
 
 #-------------------------------------------------------------------------------
@@ -58,6 +59,9 @@ class TestPynspectRules(unittest.TestCase):
         rule_datetime = DatetimeRule("2017-01-01T12:00:00Z")
         self.assertEqual(str(rule_datetime), "2017-01-01T12:00:00Z")
         self.assertEqual(repr(rule_datetime), "DATETIME('2017-01-01T12:00:00Z')")
+        rule_timedelta = TimedeltaRule(3600)
+        self.assertEqual(str(rule_timedelta), "3600")
+        self.assertEqual(repr(rule_timedelta), "TIMEDELTA(3600)")
         rule_integer = IntegerRule(15)
         self.assertEqual(str(rule_integer), "15")
         self.assertEqual(repr(rule_integer), "INTEGER(15)")

@@ -44,7 +44,7 @@ import calendar
 from pynspect.rules import FilteringRuleException
 
 
-class BaseRuleTreeTraverser():
+class BaseRuleTreeTraverser(object):
     """
     Base class and interface definition for all rule tree traversers. This is a
     mandatory interface that is required for an object to be able to traverse

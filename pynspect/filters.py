@@ -128,7 +128,7 @@ class DataObjectFilter(BaseFilteringTreeTraverser):
     """
 
     def __init__(self, parser = None, compiler = None):
-        super().__init__()
+        super(DataObjectFilter, self).__init__()
         self.register_function('size', grfcbk_size)
         self.register_function('time', grfcbk_time)
 

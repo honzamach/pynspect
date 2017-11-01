@@ -108,14 +108,14 @@ class FilteringRuleException(Exception):
     This exception will be thrown on module specific errors.
     """
     def __init__(self, description):
-        super().__init__()
+        super(FilteringRuleException).__init__()
         self.description = description
 
     def __str__(self):
         return repr(self.description)
 
 
-class Rule():
+class Rule(object):
     """
     Base class for all filter tree rules.
     """
@@ -353,7 +353,7 @@ class ListRule(ValueRule):
         if not isinstance(rule, list):
             rule = [rule]
 
-        super().__init__(rule)
+        super(ListRule, self).__init__(rule)
 
         if next_rule:
             self.value += next_rule.value

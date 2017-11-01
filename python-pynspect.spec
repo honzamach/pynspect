@@ -1,5 +1,5 @@
 %global pypi_name pynspect
-%global pypi_version 0.5
+%global pypi_version 0.10
 
 %if 0%{?el6}
 %global python3_pkgversion 33
@@ -12,7 +12,7 @@
 
 Name:           python-%{pypi_name}
 Version:        %{pypi_version}
-Release:        3%{?dist}
+Release:        1%{?dist}
 Summary:        Python 3 library for filtering, querying or inspecting almost arbitrary data structures
 
 License:        MIT

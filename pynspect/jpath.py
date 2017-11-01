@@ -161,7 +161,7 @@ class JPathException(Exception):
     This exception will be thrown on module specific errors.
     """
     def __init__(self, description):
-        super().__init__()
+        super(JPathException, self).__init__()
         self._description = description
 
     def __str__(self):

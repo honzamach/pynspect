@@ -162,6 +162,13 @@ from pynspect.rules import IPV4Rule, IPV6Rule, DatetimeRule, IntegerRule, FloatR
     LogicalBinOpRule, UnaryOperationRule, ComparisonBinOpRule, MathBinOpRule, FunctionRule, ListRule
 
 
+class PynspectGrammarSyntaxError(Exception):
+    """
+
+    """
+    pass
+
+
 class PynspectFilterParser():
     """
     Object encapsulation of *PLY* parser implementation for filtering and
@@ -192,7 +199,7 @@ class PynspectFilterParser():
 
         self.parser = ply.yacc.yacc(
             module=self,
-            debuglog=self.logger,
+            #debuglog=self.logger,
             errorlog=self.logger
             #start='statements',
             #debug=yacc_debug,
@@ -398,7 +405,10 @@ class PynspectFilterParser():
 
     @staticmethod
     def p_error(tok):
-        print("Syntax error at '%s'" % tok.value)
+        if tok:
+            raise PynspectGrammarSyntaxError("Syntax error at '%s'" % str(tok))
+        else:
+            raise PynspectGrammarSyntaxError("Syntax error while parsing the grammar rule")
 
 
 #

@@ -21,7 +21,7 @@ __credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>"
 
 import unittest
 
-from pynspect.gparser import PynspectFilterParser
+from pynspect.gparser import PynspectFilterParser, PynspectGrammarSyntaxError
 
 
 #-------------------------------------------------------------------------------
@@ -308,6 +308,15 @@ class TestPynspectFilterParser(unittest.TestCase):
         self.assertEqual(repr(self.psr.parse('Source.IP4 in [127.0.0.1 , 127.0.0.2]')), "COMPBINOP(VARIABLE('Source.IP4') OP_IN LIST(IPV4('127.0.0.1'), IPV4('127.0.0.2')))")
         self.assertEqual(repr(self.psr.parse('(Source.IP4 eq 127.0.0.1) or (Node[#].Name is "cz.cesnet.labrea")')), "LOGBINOP(COMPBINOP(VARIABLE('Source.IP4') OP_EQ IPV4('127.0.0.1')) OP_OR COMPBINOP(VARIABLE('Node[#].Name') OP_IS CONSTANT('cz.cesnet.labrea')))")
         self.assertEqual(repr(self.psr.parse("Category in ['Attempt.Exploit'] and (Target.Port in [80, 443] or Source.Proto in ['http', 'https', 'http-alt'] or Target.Proto in ['http', 'https', 'http-alt'])")), "LOGBINOP(COMPBINOP(VARIABLE('Category') OP_IN LIST(CONSTANT('Attempt.Exploit'))) OP_AND LOGBINOP(COMPBINOP(VARIABLE('Target.Port') OP_IN LIST(INTEGER(80), INTEGER(443))) OP_OR LOGBINOP(COMPBINOP(VARIABLE('Source.Proto') OP_IN LIST(CONSTANT('http'), CONSTANT('https'), CONSTANT('http-alt'))) OP_OR COMPBINOP(VARIABLE('Target.Proto') OP_IN LIST(CONSTANT('http'), CONSTANT('https'), CONSTANT('http-alt'))))))")
+
+
+    def test_07_failures(self):
+        """
+        Test parsing syntax failures.
+        """
+        self.assertRaisesRegex(PynspectGrammarSyntaxError, 'Syntax error while parsing the grammar rule', self.psr.parse, 'size(Category > 5')
+        self.assertRaisesRegex(PynspectGrammarSyntaxError, 'Syntax error while parsing the grammar rule', self.psr.parse, 'Source/IP4 in [195.113.20.138')
+        self.assertRaisesRegex(PynspectGrammarSyntaxError, 'Syntax error at', self.psr.parse, 'Description eq "SSH dictionary/bruteforce attack and Source/IP4 in [195.113.20.138')
 
 
 #-------------------------------------------------------------------------------

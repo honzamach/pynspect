@@ -59,7 +59,7 @@ of :py:mod:`pynspect.lexer` module.
 Example expressions
 ^^^^^^^^^^^^^^^^^^^
 
-.. code-block::
+.. code-block:: python
 
     time() > (CreateTime + 3600)
     CreateTime > 2017-01-01T12:00:00Z and Source.IP4 in [127.0.0.1, 127.0.0.2]

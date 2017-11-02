@@ -294,7 +294,7 @@ class PrintingTreeTraverser(BaseRuleTreeTraverser):
         :param pynspect.rules.Rule rule: Reference to rule.
         :param dict kwargs: Optional callback arguments.
         """
-        return "LIST({})".format(', '.join([str(v) for v in rule.value]))
+        return "LIST({})".format(', '.join([v.traverse(self, **kwargs) for v in rule.value]))
 
     def binary_operation_logical(self, rule, left, right, **kwargs):
         """
@@ -352,7 +352,160 @@ class PrintingTreeTraverser(BaseRuleTreeTraverser):
         :param args: Optional function arguments.
         :param dict kwargs: Optional callback arguments.
         """
-        return "FUNCTION({};{})".format(rule.function, str(args))
+        return "FUNCTION({};{})".format(rule.function, ','.join(args))
+
+
+class HTMLTreeTraverser(BaseRuleTreeTraverser):
+    """
+    Demonstation of simple rule tree traverser - HTML printing traverser.
+    """
+    def ipv4(self, rule, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.IPV4Rule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param dict kwargs: Optional callback arguments.
+        """
+        return '<div class="pynspect-rule-constant pynspect-rule-constant-ipv4"><code>{}</code></div>'.format(rule.value)
+
+    def ipv6(self, rule, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.IPV6Rule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param dict kwargs: Optional callback arguments.
+        """
+        return '<div class="pynspect-rule-constant pynspect-rule-constant-ipv6"><code>{}</code></div>'.format(rule.value)
+
+    def datetime(self, rule, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.DatetimeRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param dict kwargs: Optional callback arguments.
+        """
+        return '<div class="pynspect-rule-constant pynspect-rule-constant-datetime"><code>{}</code></div>'.format(rule.value)
+
+    def timedelta(self, rule, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.TimedeltaRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param dict kwargs: Optional callback arguments.
+        """
+        return '<div class="pynspect-rule-constant pynspect-rule-constant-timedelta"><code>{}</code></div>'.format(rule.value)
+
+    def integer(self, rule, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.IntegerRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param dict kwargs: Optional callback arguments.
+        """
+        return '<div class="pynspect-rule-constant pynspect-rule-constant-integer"><code>{}</code></div>'.format(rule.value)
+
+    def float(self, rule, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.FloatRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param dict kwargs: Optional callback arguments.
+        """
+        return '<div class="pynspect-rule-constant pynspect-rule-constant-float"><code>{}</code></div>'.format(rule.value)
+
+    def constant(self, rule, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.ConstantRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param dict kwargs: Optional callback arguments.
+        """
+        return '<div class="pynspect-rule-constant pynspect-rule-constant-string"><code>&quot;{}&quot;</code></div>'.format(rule.value)
+
+    def variable(self, rule, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.VariableRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param dict kwargs: Optional callback arguments.
+        """
+        return '<div class="pynspect-rule-constant pynspect-rule-constant-string"><kbd>{}</kbd></div>'.format(rule.value)
+
+    def list(self, rule, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.ListRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param dict kwargs: Optional callback arguments.
+        """
+        return '<ul class="pynspect-rule-list">{}</ul>'.format(''.join(['<li class="pynspect-rule-list-item">{}</li>'.format(v.traverse(self, **kwargs)) for v in rule.value]))
+
+    def binary_operation_logical(self, rule, left, right, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.LogicalBinOpRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param left: Left operand for operation.
+        :param right: right operand for operation.
+        :param dict kwargs: Optional callback arguments.
+        """
+        return '<div class="pynspect-rule-operation pynspect-rule-operation-logical"><h3 class="pynspect-rule-operation-name">{}</h3><ul class="pynspect-rule-operation-arguments"><li class="pynspect-rule-operation-argument-left">{}</li><li class="pynspect-rule-operation-argument-right">{}</li></ul></div>'.format(rule.operation, left, right)
+
+    def binary_operation_comparison(self, rule, left, right, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.ComparisonBinOpRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param left: Left operand for operation.
+        :param right: right operand for operation.
+        :param dict kwargs: Optional callback arguments.
+        """
+        return '<div class="pynspect-rule-operation pynspect-rule-operation-comparison"><h3 class="pynspect-rule-operation-name">{}</h3><ul class="pynspect-rule-operation-arguments"><li class="pynspect-rule-operation-argument-left">{}</li><li class="pynspect-rule-operation-argument-right">{}</li></ul></div>'.format(rule.operation, left, right)
+
+    def binary_operation_math(self, rule, left, right, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.MathBinOpRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param left: Left operand for operation.
+        :param right: right operand for operation.
+        :param dict kwargs: Optional callback arguments.
+        """
+        return '<div class="pynspect-rule-operation pynspect-rule-operation-math"><h3 class="pynspect-rule-operation-name">{}</h3><ul class="pynspect-rule-operation-arguments"><li class="pynspect-rule-operation-argument-left">{}</li><li class="pynspect-rule-operation-argument-right">{}</li></ul></div>'.format(rule.operation, left, right)
+
+    def unary_operation(self, rule, right, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.UnaryOperationRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param right: right operand for operation.
+        :param dict kwargs: Optional callback arguments.
+        """
+        return '<div class="pynspect-rule-operation pynspect-rule-operation-unary"><h3 class="pynspect-rule-operation-name">{}</h3><ul class="pynspect-rule-operation-arguments"><li class="pynspect-rule-operation-argument-right">{}</li></ul></div>'.format(rule.operation, right)
+
+    def function(self, rule, args, **kwargs):
+        """
+        Callback method for rule tree traversing. Will be called at proper time
+        from :py:class:`pynspect.rules.FunctionRule.traverse` method.
+
+        :param pynspect.rules.Rule rule: Reference to rule.
+        :param args: Optional function arguments.
+        :param dict kwargs: Optional callback arguments.
+        """
+        return '<div class="pynspect-rule-function"><h3 class="pynspect-rule-function-name">{}</h3><ul class="pynspect-rule-function-arguments>{}</ul></div>'.format(rule.function, ''.join(['<li class="pynspect-rule-function-argument">{}</li>'.format(v) for v in args]))
 
 
 #-------------------------------------------------------------------------------

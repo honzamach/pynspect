@@ -23,7 +23,7 @@ import unittest
 
 from pynspect.rules import IntegerRule, VariableRule, LogicalBinOpRule, UnaryOperationRule,\
     ComparisonBinOpRule, MathBinOpRule, FunctionRule
-from pynspect.traversers import PrintingTreeTraverser, BaseFilteringTreeTraverser
+from pynspect.traversers import PrintingTreeTraverser, HTMLTreeTraverser, BaseFilteringTreeTraverser
 
 
 #-------------------------------------------------------------------------------
@@ -34,7 +34,8 @@ from pynspect.traversers import PrintingTreeTraverser, BaseFilteringTreeTraverse
 
 class TestPynspectPrintingTreeTraverser(unittest.TestCase):
     """
-    Unit test class for testing the PrintingTreeTraverser from :py:mod:`pynspect.rules` module.
+    Unit test class for testing the :py:class:`pynspect.traversers.PrintingTreeTraverser`
+    from :py:mod:`pynspect.traversers` module.
     """
 
     def setUp(self):
@@ -42,7 +43,7 @@ class TestPynspectPrintingTreeTraverser(unittest.TestCase):
 
     def test_01_basic(self):
         """
-        Demonstrate and test the PrintingTreeTraverser object.
+        Demonstrate and test the :py:class:`pynspect.traversers.PrintingTreeTraverser` object.
         """
         self.maxDiff = None
 
@@ -62,12 +63,47 @@ class TestPynspectPrintingTreeTraverser(unittest.TestCase):
         self.assertEqual(rule_unop.traverse(self.tvs), 'UNOP(OP_NOT;VARIABLE(Test))')
 
         rule_function = FunctionRule('test', VariableRule("Test"))
-        self.assertEqual(rule_function.traverse(self.tvs), "FUNCTION(test;['VARIABLE(Test)'])")
+        self.assertEqual(rule_function.traverse(self.tvs), "FUNCTION(test;VARIABLE(Test))")
+
+
+class TestPynspectHTMLTreeTraverser(unittest.TestCase):
+    """
+    Unit test class for testing the :py:class:`pynspect.traversers.HTMLTreeTraverser`
+    from :py:mod:`pynspect.traversers` module.
+    """
+
+    def setUp(self):
+        self.tvs = HTMLTreeTraverser()
+
+    def test_01_basic(self):
+        """
+        Demonstrate and test the :py:class:`pynspect.traversers.HTMLTreeTraverser` object.
+        """
+        self.maxDiff = None
+
+        rule_binop_l = LogicalBinOpRule('OP_OR', VariableRule('Test'), IntegerRule(10))
+        self.assertEqual(rule_binop_l.traverse(self.tvs), '<div class="pynspect-rule-operation pynspect-rule-operation-logical"><h3 class="pynspect-rule-operation-name">OP_OR</h3><ul class="pynspect-rule-operation-arguments"><li class="pynspect-rule-operation-argument-left"><div class="pynspect-rule-constant pynspect-rule-constant-string"><kbd>Test</kbd></div></li><li class="pynspect-rule-operation-argument-right"><div class="pynspect-rule-constant pynspect-rule-constant-integer"><code>10</code></div></li></ul></div>')
+
+        rule_binop_c = ComparisonBinOpRule('OP_GT', VariableRule('Test'), IntegerRule(15))
+        self.assertEqual(rule_binop_c.traverse(self.tvs), '<div class="pynspect-rule-operation pynspect-rule-operation-comparison"><h3 class="pynspect-rule-operation-name">OP_GT</h3><ul class="pynspect-rule-operation-arguments"><li class="pynspect-rule-operation-argument-left"><div class="pynspect-rule-constant pynspect-rule-constant-string"><kbd>Test</kbd></div></li><li class="pynspect-rule-operation-argument-right"><div class="pynspect-rule-constant pynspect-rule-constant-integer"><code>15</code></div></li></ul></div>')
+
+        rule_binop_m = MathBinOpRule('OP_PLUS', VariableRule('Test'), IntegerRule(10))
+        self.assertEqual(rule_binop_m.traverse(self.tvs), '<div class="pynspect-rule-operation pynspect-rule-operation-math"><h3 class="pynspect-rule-operation-name">OP_PLUS</h3><ul class="pynspect-rule-operation-arguments"><li class="pynspect-rule-operation-argument-left"><div class="pynspect-rule-constant pynspect-rule-constant-string"><kbd>Test</kbd></div></li><li class="pynspect-rule-operation-argument-right"><div class="pynspect-rule-constant pynspect-rule-constant-integer"><code>10</code></div></li></ul></div>')
+
+        rule_binop = LogicalBinOpRule('OP_OR', ComparisonBinOpRule('OP_GT', MathBinOpRule('OP_PLUS', VariableRule('Test'), IntegerRule(10)), IntegerRule(20)), ComparisonBinOpRule('OP_LT', VariableRule('Test'), IntegerRule(5)))
+        self.assertEqual(rule_binop.traverse(self.tvs), '<div class="pynspect-rule-operation pynspect-rule-operation-logical"><h3 class="pynspect-rule-operation-name">OP_OR</h3><ul class="pynspect-rule-operation-arguments"><li class="pynspect-rule-operation-argument-left"><div class="pynspect-rule-operation pynspect-rule-operation-comparison"><h3 class="pynspect-rule-operation-name">OP_GT</h3><ul class="pynspect-rule-operation-arguments"><li class="pynspect-rule-operation-argument-left"><div class="pynspect-rule-operation pynspect-rule-operation-math"><h3 class="pynspect-rule-operation-name">OP_PLUS</h3><ul class="pynspect-rule-operation-arguments"><li class="pynspect-rule-operation-argument-left"><div class="pynspect-rule-constant pynspect-rule-constant-string"><kbd>Test</kbd></div></li><li class="pynspect-rule-operation-argument-right"><div class="pynspect-rule-constant pynspect-rule-constant-integer"><code>10</code></div></li></ul></div></li><li class="pynspect-rule-operation-argument-right"><div class="pynspect-rule-constant pynspect-rule-constant-integer"><code>20</code></div></li></ul></div></li><li class="pynspect-rule-operation-argument-right"><div class="pynspect-rule-operation pynspect-rule-operation-comparison"><h3 class="pynspect-rule-operation-name">OP_LT</h3><ul class="pynspect-rule-operation-arguments"><li class="pynspect-rule-operation-argument-left"><div class="pynspect-rule-constant pynspect-rule-constant-string"><kbd>Test</kbd></div></li><li class="pynspect-rule-operation-argument-right"><div class="pynspect-rule-constant pynspect-rule-constant-integer"><code>5</code></div></li></ul></div></li></ul></div>')
+
+        rule_unop = UnaryOperationRule('OP_NOT', VariableRule('Test'))
+        self.assertEqual(rule_unop.traverse(self.tvs), '<div class="pynspect-rule-operation pynspect-rule-operation-unary"><h3 class="pynspect-rule-operation-name">OP_NOT</h3><ul class="pynspect-rule-operation-arguments"><li class="pynspect-rule-operation-argument-right"><div class="pynspect-rule-constant pynspect-rule-constant-string"><kbd>Test</kbd></div></li></ul></div>')
+
+        rule_function = FunctionRule('test', VariableRule('Test'))
+        self.assertEqual(rule_function.traverse(self.tvs), '<div class="pynspect-rule-function"><h3 class="pynspect-rule-function-name">test</h3><ul class="pynspect-rule-function-arguments><li class="pynspect-rule-function-argument"><div class="pynspect-rule-constant pynspect-rule-constant-string"><kbd>Test</kbd></div></li></ul></div>')
 
 
 class TestPynspectBaseFilteringTreeTraverser(unittest.TestCase):
     """
-    Unit test class for testing the RuleTreeTraverser from :py:mod:`pynspect.rules` module.
+    Unit test class for testing the :py:class:`pynspect.traversers.BaseFilteringTreeTraverser`
+    from :py:mod:`pynspect.traversers` module.
     """
 
     def setUp(self):

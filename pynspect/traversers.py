@@ -437,7 +437,7 @@ class HTMLTreeTraverser(BaseRuleTreeTraverser):
         :param pynspect.rules.Rule rule: Reference to rule.
         :param dict kwargs: Optional callback arguments.
         """
-        return '<div class="pynspect-rule-constant pynspect-rule-constant-string"><kbd>{}</kbd></div>'.format(rule.value)
+        return '<div class="pynspect-rule-variable"><kbd>{}</kbd></div>'.format(rule.value)
 
     def list(self, rule, **kwargs):
         """

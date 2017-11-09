@@ -249,6 +249,8 @@ class TestPynspectFilterParser(unittest.TestCase):
         self.assertEqual(repr(self.psr.parse('["constant1"]')),          "LIST(CONSTANT('constant1'))")
 
         self.assertEqual(repr(self.psr.parse("[127.0.0.1 , 127.0.0.2]")),                     "LIST(IPV4('127.0.0.1'), IPV4('127.0.0.2'))")
+        self.assertEqual(repr(self.psr.parse("[127.0.0.1, 127.0.0.2]")),                      "LIST(IPV4('127.0.0.1'), IPV4('127.0.0.2'))")
+        self.assertEqual(repr(self.psr.parse("[127.0.0.1,127.0.0.2]")),                       "LIST(IPV4('127.0.0.1'), IPV4('127.0.0.2'))")
         self.assertEqual(repr(self.psr.parse("[::1 , ::2]")),                                 "LIST(IPV6('::1'), IPV6('::2'))")
         self.assertEqual(repr(self.psr.parse("[2017-01-01T12:00:00Z,2017-01-01T24:00:00Z]")), "LIST(DATETIME('2017-01-01T12:00:00Z'), DATETIME('2017-01-01T24:00:00Z'))")
         self.assertEqual(repr(self.psr.parse("[1,2, 3,4 , 5]")),                              "LIST(INTEGER(1), INTEGER(2), INTEGER(3), INTEGER(4), INTEGER(5))")

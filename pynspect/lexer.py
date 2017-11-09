@@ -203,14 +203,14 @@ class PynspectFilterLexer():
     ]
 
     # Regular expressions for simple tokens
-    t_COMMA  = r'\s*,\s*|\s*;\s*'
+    t_COMMA  = r',|;'
     t_LPAREN = r'\('
     t_RPAREN = r'\)'
     t_LBRACK = r'\['
     t_RBRACK = r'\]'
 
     # Regular expression for ignored tokens
-    t_ignore = ' \t'
+    t_ignore = " \t"
 
 
     def __init__(self):
@@ -261,13 +261,13 @@ class PynspectFilterLexer():
 
     @staticmethod
     def t_IPV4(tok):
-        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?:\/\d{1,2}|(?:-|..)\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})?'
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?:\/\d{1,2}|(?:-|\.\.)\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})?'
         tok.value = (tok.type, tok.value)
         return tok
 
     @staticmethod
     def t_IPV6(tok):
-        r'[:a-fA-F0-9]+:[:a-fA-F0-9]*(?:\/\d{1,3}|(?:-|..)[:a-fA-F0-9]+:[:a-fA-F0-9]*)?'
+        r'[:a-fA-F0-9]+:[:a-fA-F0-9]*(?:\/\d{1,3}|(?:-|\.\.)[:a-fA-F0-9]+:[:a-fA-F0-9]*)?'
         tok.value = (tok.type, tok.value)
         return tok
 
@@ -364,7 +364,9 @@ if __name__ == "__main__":
         func3("argument")
     """
 
+    TEST_DATA = """1, 2, 3 , 4,127.0.0.1, 127.0.0.2"""
+
     # Build the lexer and try it out.
     DEMO_LEXER = PynspectFilterLexer()
-    DEMO_LEXER.build()
+    DEMO_LEXER.build(debug=1)
     print(DEMO_LEXER.test(TEST_DATA, "\n"))

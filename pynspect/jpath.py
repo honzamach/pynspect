@@ -284,8 +284,7 @@ def jpath_values(structure, jpath):
                 try:
                     # Handle '*' special index - append all nodes.
                     if str(idx) == '*':
-                        for i in node[key]:
-                            nodes_b.append(i)
+                        nodes_b.extend(node[key])
                     # Append only node at particular index.
                     else:
                         nodes_b.append(node[key][idx])
@@ -438,6 +437,98 @@ def jpath_set(structure, jpath, value, overwrite = True, unique = False):
                     return RC_VALUE_EXISTS
     return RC_VALUE_SET
 
+def jpath_unset(structure, jpath):
+    """
+    Unset (delete) value at given JPath within given structure.
+
+    For performance reasons this method is intentionally not written as
+    recursive.
+
+    :param str structure: data structure to be trimmed
+    :param str jpath: JPath to be evaluated
+    """
+    chunks = jpath_parse_c(jpath)
+    size = len(chunks) - 1
+
+    # Current working node set.
+    nodes_a = [structure]
+
+    # Next iteration working node set.
+    nodes_b = []
+
+    # Process chunks in order, enumeration is used for detection of the last JPath chunk.
+    for i, chnk in enumerate(chunks):
+        # Process all currently active nodes.
+        for node in nodes_a:
+            key = chnk['n']
+
+            if not isinstance(node, dict) and not isinstance(node, collections.Mapping):
+                raise JPathException("Expected dict-like structure to drop node '{}'".format(chnk['p']))
+
+            # Process indexed nodes.
+            if 'i' in chnk:
+                idx = chnk['i']
+
+                # Skip nodes for non-existent keys.
+                if not key in node:
+                    continue
+                if not isinstance(node[key], list) and not isinstance(node[key], collections.MutableSequence):
+                    raise JPathException("Expected list-like object under structure key '{}'".format(key))
+
+                # Detection of the last JPath chunk - node somewhere in the middle.
+                if i != size:
+                    # Attempt to access node at given index.
+                    try:
+                        # Handle '*' special index - append all nodes.
+                        if str(idx) == '*':
+                            nodes_b.extend(node[key])
+                        else:
+                            nodes_b.append(node[key][idx])
+                    # IndexError: list index out of range
+                    except (IndexError, TypeError):
+                        continue
+
+                # Detection of the last JPath chunk - node at the end.
+                else:
+                    # Attempt to delete value at given index.
+                    try:
+                        # Handle '*' special index - delete all nodes.
+                        if str(idx) == '*':
+                            del node[key]
+                        else:
+                            del node[key][idx]
+                    # IndexError: list index out of range
+                    except (IndexError, TypeError):
+                        continue
+
+            # Process unindexed nodes.
+            else:
+                # Detection of the last JPath chunk - node somewhere in the middle.
+                if i != size:
+                    # Skip nodes for non-existent keys.
+                    if not key in node:
+                        continue
+                    if isinstance(node[key], list):
+                        nodes_b.extend(node[key])
+                        continue
+                    if not isinstance(node[key], dict) and not isinstance(node[key], collections.Mapping):
+                        raise JPathException("Expected dict-like object under structure key '{}'".format(key))
+                    nodes_b.append(node[key])
+
+                # Detection of the last JPath chunk - node at the end.
+                else:
+                    # Attempt to delete value at given index.
+                    try:
+                        del node[key]
+                    # KeyError: key does not exist
+                    except KeyError:
+                        continue
+
+        nodes_a = nodes_b
+        nodes_b = []
+
+
+#-------------------------------------------------------------------------------
 
 #
 # Perform the demonstration.
@@ -465,7 +556,7 @@ if __name__ == "__main__":
         'TestA': { 'ValueA1': 'A1', 'ValueA2': 'A2' },
         'TestB': { 'ValueB1': 'B1', 'ValueB2': 'B2' },
         'TestC': { 'ValueC1': 'C1', 'ValueC2': 'C2' },
-        'TestD': { 'ValueD1': ['D11','D12'], 'ValueC2': 'C2' }
+        'TestD': { 'ValueD1': ['D11','D12'], 'ValueD2': 'D21' }
     }
     pprint.pprint(jpath_values(MSG, 'TestD.ValueD1'))
     pprint.pprint(jpath_values(MSG, 'TestD.ValueD1[1]'))
@@ -478,7 +569,7 @@ if __name__ == "__main__":
         'TestA': { 'ValueA1': 'A1', 'ValueA2': 'A2' },
         'TestB': { 'ValueB1': 'B1', 'ValueB2': 'B2' },
         'TestC': { 'ValueC1': 'C1', 'ValueC2': 'C2' },
-        'TestD': { 'ValueD1': ['D11','D12'], 'ValueC2': 'C2' }
+        'TestD': { 'ValueD1': ['D11','D12'], 'ValueD2': 'D21' }
     }
     pprint.pprint(jpath_set(MSG, 'TestE.ValueE1', "Added value"))
     pprint.pprint(jpath_set(MSG, 'TestE.ValueE2[1]', "Added value 2"))
@@ -487,4 +578,18 @@ if __name__ == "__main__":
     pprint.pprint(jpath_set(MSG, 'TestE.ValueE3[1].Subval1', "Added subvalue 11"))
     pprint.pprint(jpath_set(MSG, 'TestE.ValueE3[1].Subval2[1]', "Added subval 21"))
     pprint.pprint(jpath_set(MSG, 'TestE.ValueE3[#].Subval2[2]', "Added subval 22"))
+    pprint.pprint(MSG)
+
+    print("Path unseting:")
+    MSG = {
+        'TestA': { 'ValueA1': 'A1', 'ValueA2': 'A2' },
+        'TestB': { 'ValueB1': 'B1', 'ValueB2': 'B2' },
+        'TestC': { 'ValueC1': 'C1', 'ValueC2': ['C2', 'C3'] },
+        'TestD': [{ 'ValueD1': ['Da11','Da12'], 'ValueD2': 'Da22' }, { 'ValueD1': ['Db11','Db12'], 'ValueD2': 'Db22' }]
+    }
+    pprint.pprint(jpath_unset(MSG, 'TestA'))
+    pprint.pprint(jpath_unset(MSG, 'TestB.ValueB1'))
+    pprint.pprint(jpath_unset(MSG, 'TestC.ValueC2[1]'))
+    pprint.pprint(jpath_unset(MSG, 'TestD.ValueD1[1]'))
+    pprint.pprint(jpath_unset(MSG, 'TestD[1].ValueD2'))
     pprint.pprint(MSG)

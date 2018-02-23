@@ -23,7 +23,7 @@ import unittest
 
 from idea import lite
 from pynspect.jpath import JPathException, cache_size, cache_clear,\
-    jpath_parse, jpath_parse_c, jpath_exists, jpath_set, jpath_value, jpath_values,\
+    jpath_parse, jpath_parse_c, jpath_exists, jpath_set, jpath_unset, jpath_value, jpath_values,\
     RC_VALUE_DUPLICATE, RC_VALUE_EXISTS, RC_VALUE_SET
 
 
@@ -598,6 +598,100 @@ class TestJPath(unittest.TestCase):
             msg,
             {
                 'TestD': [{ 'ListVals1': ['LV1','LV2','LV3'], 'DictVal': 'DV1' }]
+            }
+        )
+
+    def test_08_jpath_unset(self):
+        """
+        Perform the basic JPath value unsetting tests.
+        """
+        self.maxDiff = None
+
+        msg = {
+            'TestA': { 'ValueA1': 'A1', 'ValueA2': 'A2' },
+            'TestB': { 'ValueB1': 'B1', 'ValueB2': 'B2' },
+            'TestC': { 'ValueC1': 'C1', 'ValueC2': ['C2', 'C3'] },
+            'TestD': [{ 'ValueD1': ['Da11','Da12'], 'ValueD2': 'Da22' }, { 'ValueD1': ['Db11','Db12'], 'ValueD2': 'Db22' }]
+        }
+        jpath_unset(msg, 'TestA')
+        self.assertEqual(
+            msg,
+            {
+                'TestB': { 'ValueB1': 'B1', 'ValueB2': 'B2' },
+                'TestC': { 'ValueC1': 'C1', 'ValueC2': ['C2', 'C3'] },
+                'TestD': [{ 'ValueD1': ['Da11','Da12'], 'ValueD2': 'Da22' }, { 'ValueD1': ['Db11','Db12'], 'ValueD2': 'Db22' }]
+            }
+        )
+        jpath_unset(msg, 'TestB.ValueB1')
+        self.assertEqual(
+            msg,
+            {
+                'TestB': { 'ValueB2': 'B2' },
+                'TestC': { 'ValueC1': 'C1', 'ValueC2': ['C2', 'C3'] },
+                'TestD': [{ 'ValueD1': ['Da11','Da12'], 'ValueD2': 'Da22' }, { 'ValueD1': ['Db11','Db12'], 'ValueD2': 'Db22' }]
+            }
+        )
+        jpath_unset(msg, 'TestC.ValueC2[1]')
+        self.assertEqual(
+            msg,
+            {
+                'TestB': { 'ValueB2': 'B2' },
+                'TestC': { 'ValueC1': 'C1', 'ValueC2': ['C3'] },
+                'TestD': [{ 'ValueD1': ['Da11','Da12'], 'ValueD2': 'Da22' }, { 'ValueD1': ['Db11','Db12'], 'ValueD2': 'Db22' }]
+            }
+        )
+        jpath_unset(msg, 'TestD.ValueD1[1]')
+        self.assertEqual(
+            msg,
+            {
+                'TestB': { 'ValueB2': 'B2' },
+                'TestC': { 'ValueC1': 'C1', 'ValueC2': ['C3'] },
+                'TestD': [{ 'ValueD1': ['Da12'], 'ValueD2': 'Da22' }, { 'ValueD1': ['Db12'], 'ValueD2': 'Db22' }]
+            }
+        )
+        jpath_unset(msg, 'TestD[1].ValueD2')
+        self.assertEqual(
+            msg,
+            {
+                'TestB': { 'ValueB2': 'B2' },
+                'TestC': { 'ValueC1': 'C1', 'ValueC2': ['C3'] },
+                'TestD': [{ 'ValueD1': ['Da12'] }, { 'ValueD1': ['Db12'], 'ValueD2': 'Db22' }]
+            }
+        )
+        jpath_unset(msg, 'TestC.ValueC2[*]')
+        self.assertEqual(
+            msg,
+            {
+                'TestB': { 'ValueB2': 'B2' },
+                'TestC': { 'ValueC1': 'C1' },
+                'TestD': [{ 'ValueD1': ['Da12'] }, { 'ValueD1': ['Db12'], 'ValueD2': 'Db22' }]
+            }
+        )
+        jpath_unset(msg, 'TestD[2].ValueD1[#]')
+        self.assertEqual(
+            msg,
+            {
+                'TestB': { 'ValueB2': 'B2' },
+                'TestC': { 'ValueC1': 'C1' },
+                'TestD': [{ 'ValueD1': ['Da12'] }, { 'ValueD1': [], 'ValueD2': 'Db22' }]
+            }
+        )
+        jpath_unset(msg, 'TestD[1]')
+        self.assertEqual(
+            msg,
+            {
+                'TestB': { 'ValueB2': 'B2' },
+                'TestC': { 'ValueC1': 'C1' },
+                'TestD': [{ 'ValueD1': [], 'ValueD2': 'Db22' }]
+            }
+        )
+        jpath_unset(msg, 'TestD.ValueD1')
+        self.assertEqual(
+            msg,
+            {
+                'TestB': { 'ValueB2': 'B2' },
+                'TestC': { 'ValueC1': 'C1' },
+                'TestD': [{'ValueD2': 'Db22' }]
             }
         )
 

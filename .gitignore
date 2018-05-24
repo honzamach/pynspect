@@ -16,6 +16,7 @@
 *.deb
 *.whl
 *.out
+*.sublime-*
 
 # Python related stuff.
 *.pyc

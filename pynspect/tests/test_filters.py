@@ -11,7 +11,8 @@
 
 
 """
-Unit test module for testing the :py:mod:`pynspect.filters` module.
+Unit test module for testing the :py:mod:`pynspect.filters` module with generic
+dict-like data structures.
 """
 
 
@@ -103,7 +104,7 @@ class TestDataObjectFilter(unittest.TestCase):
 
     def test_01_basic_logical(self):
         """
-        Perform basic filtering tests.
+        Perform filtering tests with basic logical expressions.
         """
         self.maxDiff = None
 
@@ -143,7 +144,7 @@ class TestDataObjectFilter(unittest.TestCase):
 
     def test_02_basic_comparison(self):
         """
-        Perform basic filtering tests.
+        Perform filtering tests with basic comparison expressions.
         """
         self.maxDiff = None
 
@@ -197,6 +198,12 @@ class TestDataObjectFilter(unittest.TestCase):
         rule = ComparisonBinOpRule('OP_LE', VariableRule("ConnCount"), IntegerRule(1))
         self.assertEqual(self.flt.filter(rule, self.test_msg1), False)
 
+    def test_03_parsed_comparison(self):
+        """
+        Perform filtering tests with parsed comparison expressions.
+        """
+        self.maxDiff = None
+
         rule = self.psr.parse('ID == "e214d2d9-359b-443d-993d-3cc5637107a0"')
         self.assertEqual(self.flt.filter(rule, self.test_msg1), True)
         rule = self.psr.parse('ID eq "e214d2d9-359b-443d-993d-3cc5637107"')
@@ -249,9 +256,9 @@ class TestDataObjectFilter(unittest.TestCase):
         rule = self.psr.parse('ConnCounts LE 1')
         self.assertEqual(self.flt.filter(rule, self.test_msg1), None)
 
-    def test_03_basic_math(self):
+    def test_04_basic_math(self):
         """
-        Perform basic math tests.
+        Perform filtering tests with basic math expressions.
         """
         self.maxDiff = None
 
@@ -266,6 +273,12 @@ class TestDataObjectFilter(unittest.TestCase):
         rule = MathBinOpRule('OP_MODULO', VariableRule("ConnCount"), IntegerRule(2))
         self.assertEqual(self.flt.filter(rule, self.test_msg1), 0)
 
+    def test_05_parsed_math(self):
+        """
+        Perform filtering tests with parsed math expressions.
+        """
+        self.maxDiff = None
+
         rule = self.psr.parse('ConnCount + 1')
         self.assertEqual(self.flt.filter(rule, self.test_msg1), 3)
         rule = self.psr.parse('ConnCount - 1')
@@ -277,7 +290,7 @@ class TestDataObjectFilter(unittest.TestCase):
         rule = self.psr.parse('ConnCount % 2')
         self.assertEqual(self.flt.filter(rule, self.test_msg1), 0)
 
-    def test_04_advanced_filters(self):
+    def test_06_advanced_filters(self):
         """
         Perform advanced filtering tests.
         """
@@ -293,7 +306,7 @@ class TestDataObjectFilter(unittest.TestCase):
         self.assertEqual(repr(rule), "INTEGER(1)")
         self.assertEqual(self.flt.filter(rule, self.test_msg1), True)
 
-    def test_05_non_existent_nodes(self):
+    def test_07_non_existent_nodes(self):
         """
         Perform advanced filtering tests.
         """
@@ -306,7 +319,7 @@ class TestDataObjectFilter(unittest.TestCase):
         rule = self.psr.parse('DetectTime < InspectionTime')
         self.assertEqual(self.flt.filter(rule, self.test_msg1), None)
 
-    def test_06_functions(self):
+    def test_08_functions(self):
         """
         Perform advanced filtering tests.
         """
@@ -315,6 +328,7 @@ class TestDataObjectFilter(unittest.TestCase):
         rule = self.psr.parse('(size(Node.Type) > 2)')
         self.assertEqual(repr(rule), "COMPBINOP(FUNCTION(size(VARIABLE('Node.Type'),)) OP_GT INTEGER(2))")
         self.assertEqual(self.flt.filter(rule, self.test_msg1), True)
+
         rule = self.psr.parse('(size(Source.IP4) > 4)')
         self.assertEqual(repr(rule), "COMPBINOP(FUNCTION(size(VARIABLE('Source.IP4'),)) OP_GT INTEGER(4))")
         self.assertEqual(self.flt.filter(rule, self.test_msg1), False)

@@ -191,6 +191,12 @@ class TestPynspectBaseFilteringTreeTraverser(unittest.TestCase):
         self.assertEqual(self.tvs.evaluate_binop_logical('OP_XOR', {"x":1}, {}),      True)
         self.assertEqual(self.tvs.evaluate_binop_logical('OP_XOR', {},      {}),      False)
 
+    def test_02_eval_binops_logical_p(self):
+        """
+        Test the prioritized logical binary operations evaluations.
+        """
+        self.maxDiff = None
+
         self.assertEqual(self.tvs.evaluate_binop_logical('OP_AND_P', 1,    1),    True)
         self.assertEqual(self.tvs.evaluate_binop_logical('OP_AND_P', 0,    1),    False)
         self.assertEqual(self.tvs.evaluate_binop_logical('OP_AND_P', 1,    0),    False)
@@ -269,7 +275,7 @@ class TestPynspectBaseFilteringTreeTraverser(unittest.TestCase):
         self.assertEqual(self.tvs.evaluate_binop_logical('OP_XOR_P', {"x":1}, {}),      True)
         self.assertEqual(self.tvs.evaluate_binop_logical('OP_XOR_P', {},      {}),      False)
 
-    def test_02_eval_binops_comparison(self):
+    def test_03_eval_binops_comparison(self):
         """
         Test the comparison binary operations evaluations.
         """
@@ -329,7 +335,7 @@ class TestPynspectBaseFilteringTreeTraverser(unittest.TestCase):
         self.assertEqual(self.tvs.evaluate_binop_comparison('OP_LE', 2, 1), False)
         self.assertEqual(self.tvs.evaluate_binop_comparison('OP_LE', 1, 2), True)
 
-    def test_03_eval_binops_math(self):
+    def test_04_eval_binops_math(self):
         """
         Test the mathematical binary operations evaluations.
         """

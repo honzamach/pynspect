@@ -14,18 +14,19 @@
 This module contains implementation of object representations of rule tree traversers,
 that are supposed to be used to work with rule tree structures.
 
-The base implementation and interface definition is can be found in following class:
+The base implementation and interface definition can be found in following class:
 
 * :py:class:`pynspect.traversers.BaseRuleTreeTraverser`
 
-There is a simple example implementation of rule tree traverser capable of printing
-rule tree into a formated string:
+There are simple example implementations of rule tree traversers capable of printing
+given rule tree into a formated plain text or HTML strings:
 
 * :py:class:`pynspect.traversers.PrintingTreeTraverser`
+* :py:class:`pynspect.traversers.HTMLTreeTraverser`
 
 There is also a base class for implementing filtering rule tree traversers, that
 provides many usefull tools and features and can be used to implement traversers
-that actually do something:
+that actually do something more interesting like filtering:
 
 * :py:class:`pynspect.traversers.BaseFilteringTreeTraverser`
 
@@ -39,7 +40,6 @@ __credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>, Andrea Kropáčová <andrea
 import re
 import collections
 import datetime
-import calendar
 
 from pynspect.rules import FilteringRuleException
 
@@ -511,29 +511,12 @@ class HTMLTreeTraverser(BaseRuleTreeTraverser):
 #-------------------------------------------------------------------------------
 
 
-def _py2_timestamp(val):
-    """
-    Get unix timestamp value out of given datetime object.
-
-    Implemented for Python2 compatibility purposes.
-    """
-    return calendar.timegm(val.timetuple()) + val.microsecond / 1000000.0
-
-
 def _to_numeric(val):
     """
     Helper function for conversion of various data types into numeric representation.
     """
-    if isinstance(val, (int, float)):
+    if isinstance(val, (int, float, datetime.datetime, datetime.timedelta)):
         return val
-    if isinstance(val, datetime.datetime):
-        try:
-            return val.timestamp()
-        except AttributeError:
-            # python 2 compatibility
-            return _py2_timestamp(val)
-    if isinstance(val, datetime.timedelta):
-        return val.total_seconds()
     return float(val)
 
 
@@ -599,7 +582,7 @@ class ListIP(collections.MutableSequence):
         return "%s(%s)" % (type(self).__name__, repr(self.data))
 
 
-class BaseFilteringTreeTraverser(BaseRuleTreeTraverser):
+class BaseFilteringTreeTraverser(BaseRuleTreeTraverser):  # pylint: disable=locally-disabled,abstract-method
     """
     Base class for all filtering rule tree traversers.
     """

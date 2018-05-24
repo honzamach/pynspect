@@ -11,7 +11,10 @@
 
 
 """
-Unit test module for testing the :py:mod:`pynspect.filters` module.
+Unit test module for testing the :py:mod:`pynspect.filters` module with
+`IDEA <https://idea.cesnet.cz/en/index>`__ messages. Filters used in this module
+are actual rules used in `Mentat <https://mentat.cesnet.cz/en/index>`__ system
+for advanced message classification.
 """
 
 
@@ -38,16 +41,25 @@ class TestDataObjectFilterInspector(unittest.TestCase):
     Unit test class for testing the :py:mod:`pynspect.filters` module.
     """
 
+    def setUp(self):
+        self.flt = DataObjectFilter()
+        self.psr = PynspectFilterParser()
+        self.psr.build()
+        self.cpl = IDEAFilterCompiler()
+
+    def build_rule(self, rule_str):
+        """
+        Build and compile rule tree from given rule string.
+        """
+        rule = self.psr.parse(rule_str)
+        rule = self.cpl.compile(rule)
+        return rule
+
     def test_01_inspector_filters(self):
         """
         Perform tests of filters currently used in mentat-inspector.py.
         """
         self.maxDiff = None
-
-        flt = DataObjectFilter()
-        cpl = IDEAFilterCompiler()
-        psr = PynspectFilterParser()
-        psr.build()
 
         inspection_rules = [
             {
@@ -183,13 +195,12 @@ class TestDataObjectFilterInspector(unittest.TestCase):
         ]
 
         for insr in inspection_rules:
-            rule = psr.parse(insr['filter'])
-            rule = cpl.compile(rule)
+            rule = self.build_rule(insr['filter'])
             self.assertEqual(str(rule), insr['str'])
             if 'tests' in insr:
                 for itemt in insr['tests']:
                     msg_idea = lite.Idea(itemt[0])
-                    self.assertEqual([insr['filter'], flt.filter(rule, msg_idea)], [insr['filter'], itemt[1]])
+                    self.assertEqual([insr['filter'], self.flt.filter(rule, msg_idea)], [insr['filter'], itemt[1]])
 
 
 #-------------------------------------------------------------------------------

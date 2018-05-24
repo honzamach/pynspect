@@ -11,7 +11,8 @@
 
 
 """
-Unit test module for testing the :py:mod:`pynspect.filters` module.
+Unit test module for testing the :py:mod:`pynspect.filters` module with
+`IDEA <https://idea.cesnet.cz/en/index>`__ messages.
 """
 
 
@@ -27,9 +28,8 @@ from pynspect.rules import IntegerRule, VariableRule, ConstantRule,\
     LogicalBinOpRule, UnaryOperationRule, ComparisonBinOpRule, MathBinOpRule, ListRule
 from pynspect.gparser import PynspectFilterParser
 from pynspect.filters import DataObjectFilter
-from pynspect.compilers import IDEAFilterCompiler, clean_variable
+from pynspect.compilers import IDEAFilterCompiler
 
-from pynspect.traversers import _py2_timestamp
 
 #-------------------------------------------------------------------------------
 # NOTE: Sorry for the long lines in this file. They are deliberate, because the
@@ -100,352 +100,274 @@ class TestDataObjectFilterIDEA(unittest.TestCase):
         ]
     }
 
+    def setUp(self):
+        self.flt = DataObjectFilter()
+        self.psr = PynspectFilterParser()
+        self.psr.build()
+        self.cpl = IDEAFilterCompiler()
+
+        self.msg_idea = lite.Idea(self.test_msg1)
+
+    def build_rule(self, rule_str):
+        """
+        Build and compile rule tree from given rule string.
+        """
+        rule = self.psr.parse(rule_str)
+        rule = self.cpl.compile(rule)
+        return rule
+
+    def check_rule(self, rule):
+        """
+        Check given rule against internal test message and filter.
+        """
+        return self.flt.filter(rule, self.msg_idea)
+
     def test_01_basic_logical(self):
         """
-        Perform basic filtering tests.
+        Perform filtering tests with basic logical expressions.
         """
         self.maxDiff = None
 
-        msg_idea = lite.Idea(self.test_msg1)
-        flt = DataObjectFilter()
-
         rule = LogicalBinOpRule('OP_AND', ConstantRule(True), ConstantRule(True))
-        self.assertEqual(flt.filter(rule, msg_idea), True)
+        self.assertEqual(self.check_rule(rule), True)
         rule = LogicalBinOpRule('OP_AND', ConstantRule(True), ConstantRule(False))
-        self.assertEqual(flt.filter(rule, msg_idea), False)
+        self.assertEqual(self.check_rule(rule), False)
         rule = LogicalBinOpRule('OP_AND', ConstantRule(False), ConstantRule(True))
-        self.assertEqual(flt.filter(rule, msg_idea), False)
+        self.assertEqual(self.check_rule(rule), False)
         rule = LogicalBinOpRule('OP_AND', ConstantRule(False), ConstantRule(False))
-        self.assertEqual(flt.filter(rule, msg_idea), False)
+        self.assertEqual(self.check_rule(rule), False)
 
         rule = LogicalBinOpRule('OP_OR', ConstantRule(True), ConstantRule(True))
-        self.assertEqual(flt.filter(rule, msg_idea), True)
+        self.assertEqual(self.check_rule(rule), True)
         rule = LogicalBinOpRule('OP_OR', ConstantRule(True), ConstantRule(False))
-        self.assertEqual(flt.filter(rule, msg_idea), True)
+        self.assertEqual(self.check_rule(rule), True)
         rule = LogicalBinOpRule('OP_OR', ConstantRule(False), ConstantRule(True))
-        self.assertEqual(flt.filter(rule, msg_idea), True)
+        self.assertEqual(self.check_rule(rule), True)
         rule = LogicalBinOpRule('OP_OR', ConstantRule(False), ConstantRule(False))
-        self.assertEqual(flt.filter(rule, msg_idea), False)
+        self.assertEqual(self.check_rule(rule), False)
 
         rule = LogicalBinOpRule('OP_XOR', ConstantRule(True), ConstantRule(True))
-        self.assertEqual(flt.filter(rule, msg_idea), False)
+        self.assertEqual(self.check_rule(rule), False)
         rule = LogicalBinOpRule('OP_XOR', ConstantRule(True), ConstantRule(False))
-        self.assertEqual(flt.filter(rule, msg_idea), True)
+        self.assertEqual(self.check_rule(rule), True)
         rule = LogicalBinOpRule('OP_XOR', ConstantRule(False), ConstantRule(True))
-        self.assertEqual(flt.filter(rule, msg_idea), True)
+        self.assertEqual(self.check_rule(rule), True)
         rule = LogicalBinOpRule('OP_XOR', ConstantRule(False), ConstantRule(False))
-        self.assertEqual(flt.filter(rule, msg_idea), False)
+        self.assertEqual(self.check_rule(rule), False)
 
         rule = UnaryOperationRule('OP_NOT', ConstantRule(True))
-        self.assertEqual(flt.filter(rule, msg_idea), False)
+        self.assertEqual(self.check_rule(rule), False)
         rule = UnaryOperationRule('OP_NOT', ConstantRule(False))
-        self.assertEqual(flt.filter(rule, msg_idea), True)
+        self.assertEqual(self.check_rule(rule), True)
         rule = UnaryOperationRule('OP_NOT', VariableRule("Target.Anonymised"))
-        self.assertEqual(flt.filter(rule, msg_idea), False)
+        self.assertEqual(self.check_rule(rule), False)
 
     def test_02_basic_comparison(self):
         """
-        Perform basic filtering tests.
+        Perform filtering tests with basic comparison operations.
         """
         self.maxDiff = None
-
-        msg_idea = lite.Idea(self.test_msg1)
-        flt = DataObjectFilter()
-        psr = PynspectFilterParser()
-        psr.build()
 
         rule = ComparisonBinOpRule('OP_EQ', VariableRule("ID"), ConstantRule("e214d2d9-359b-443d-993d-3cc5637107a0"))
-        self.assertEqual(flt.filter(rule, msg_idea), True)
+        self.assertEqual(self.check_rule(rule), True)
         rule = ComparisonBinOpRule('OP_EQ', VariableRule("ID"), ConstantRule("e214d2d9-359b-443d-993d-3cc5637107"))
-        self.assertEqual(flt.filter(rule, msg_idea), False)
+        self.assertEqual(self.check_rule(rule), False)
         rule = ComparisonBinOpRule('OP_NE', VariableRule("ID"), ConstantRule("e214d2d9-359b-443d-993d-3cc5637107a0"))
-        self.assertEqual(flt.filter(rule, msg_idea), False)
+        self.assertEqual(self.check_rule(rule), False)
         rule = ComparisonBinOpRule('OP_NE', VariableRule("ID"), ConstantRule("e214d2d9-359b-443d-993d-3cc5637107"))
-        self.assertEqual(flt.filter(rule, msg_idea), True)
+        self.assertEqual(self.check_rule(rule), True)
 
         rule = ComparisonBinOpRule('OP_LIKE', VariableRule("ID"), ConstantRule("e214d2d9"))
-        self.assertEqual(flt.filter(rule, msg_idea), True)
+        self.assertEqual(self.check_rule(rule), True)
         rule = ComparisonBinOpRule('OP_LIKE', VariableRule("ID"), ConstantRule("xxxxxxxx"))
-        self.assertEqual(flt.filter(rule, msg_idea), False)
+        self.assertEqual(self.check_rule(rule), False)
         rule = ComparisonBinOpRule('OP_IN', VariableRule("Category"), ListRule(ConstantRule("Phishing"), ListRule(ConstantRule("Attempt.Login"))))
-        self.assertEqual(flt.filter(rule, msg_idea), True)
+        self.assertEqual(self.check_rule(rule), True)
         rule = ComparisonBinOpRule('OP_IN', VariableRule("Category"), ListRule(ConstantRule("Phishing"), ListRule(ConstantRule("Spam"))))
-        self.assertEqual(flt.filter(rule, msg_idea), False)
+        self.assertEqual(self.check_rule(rule), False)
         rule = ComparisonBinOpRule('OP_IS', VariableRule("Category"), ListRule(ConstantRule("Attempt.Login")))
-        self.assertEqual(flt.filter(rule, msg_idea), True)
+        self.assertEqual(self.check_rule(rule), True)
         rule = ComparisonBinOpRule('OP_IS', VariableRule("Category"), ListRule(ConstantRule("Phishing"), ListRule(ConstantRule("Attempt.Login"))))
-        self.assertEqual(flt.filter(rule, msg_idea), False)
+        self.assertEqual(self.check_rule(rule), False)
         rule = ComparisonBinOpRule('OP_EQ', VariableRule("ConnCount"), IntegerRule(2))
-        self.assertEqual(flt.filter(rule, msg_idea), True)
+        self.assertEqual(self.check_rule(rule), True)
         rule = ComparisonBinOpRule('OP_EQ', VariableRule("ConnCount"), IntegerRule(4))
-        self.assertEqual(flt.filter(rule, msg_idea), False)
+        self.assertEqual(self.check_rule(rule), False)
         rule = ComparisonBinOpRule('OP_NE', VariableRule("ConnCount"), IntegerRule(2))
-        self.assertEqual(flt.filter(rule, msg_idea), False)
+        self.assertEqual(self.check_rule(rule), False)
         rule = ComparisonBinOpRule('OP_NE', VariableRule("ConnCount"), IntegerRule(4))
-        self.assertEqual(flt.filter(rule, msg_idea), True)
+        self.assertEqual(self.check_rule(rule), True)
         rule = ComparisonBinOpRule('OP_GT', VariableRule("ConnCount"), IntegerRule(2))
-        self.assertEqual(flt.filter(rule, msg_idea), False)
+        self.assertEqual(self.check_rule(rule), False)
         rule = ComparisonBinOpRule('OP_GT', VariableRule("ConnCount"), IntegerRule(1))
-        self.assertEqual(flt.filter(rule, msg_idea), True)
+        self.assertEqual(self.check_rule(rule), True)
         rule = ComparisonBinOpRule('OP_GE', VariableRule("ConnCount"), IntegerRule(2))
-        self.assertEqual(flt.filter(rule, msg_idea), True)
+        self.assertEqual(self.check_rule(rule), True)
         rule = ComparisonBinOpRule('OP_GE', VariableRule("ConnCount"), IntegerRule(1))
-        self.assertEqual(flt.filter(rule, msg_idea), True)
+        self.assertEqual(self.check_rule(rule), True)
         rule = ComparisonBinOpRule('OP_GE', VariableRule("ConnCount"), IntegerRule(3))
-        self.assertEqual(flt.filter(rule, msg_idea), False)
+        self.assertEqual(self.check_rule(rule), False)
         rule = ComparisonBinOpRule('OP_LT', VariableRule("ConnCount"), IntegerRule(2))
-        self.assertEqual(flt.filter(rule, msg_idea), False)
+        self.assertEqual(self.check_rule(rule), False)
         rule = ComparisonBinOpRule('OP_LT', VariableRule("ConnCount"), IntegerRule(3))
-        self.assertEqual(flt.filter(rule, msg_idea), True)
+        self.assertEqual(self.check_rule(rule), True)
         rule = ComparisonBinOpRule('OP_LE', VariableRule("ConnCount"), IntegerRule(2))
-        self.assertEqual(flt.filter(rule, msg_idea), True)
+        self.assertEqual(self.check_rule(rule), True)
         rule = ComparisonBinOpRule('OP_LE', VariableRule("ConnCount"), IntegerRule(3))
-        self.assertEqual(flt.filter(rule, msg_idea), True)
+        self.assertEqual(self.check_rule(rule), True)
         rule = ComparisonBinOpRule('OP_LE', VariableRule("ConnCount"), IntegerRule(1))
-        self.assertEqual(flt.filter(rule, msg_idea), False)
+        self.assertEqual(self.check_rule(rule), False)
 
-        rule = psr.parse('ID == "e214d2d9-359b-443d-993d-3cc5637107a0"')
-        self.assertEqual(flt.filter(rule, msg_idea), True)
-        rule = psr.parse('ID eq "e214d2d9-359b-443d-993d-3cc5637107"')
-        self.assertEqual(flt.filter(rule, msg_idea), False)
-        rule = psr.parse('ID != "e214d2d9-359b-443d-993d-3cc5637107a0"')
-        self.assertEqual(flt.filter(rule, msg_idea), False)
-        rule = psr.parse('ID ne "e214d2d9-359b-443d-993d-3cc5637107"')
-        self.assertEqual(flt.filter(rule, msg_idea), True)
-
-        rule = psr.parse('ID like "e214d2d9"')
-        self.assertEqual(flt.filter(rule, msg_idea), True)
-        rule = psr.parse('ID LIKE "xxxxxxxx"')
-        self.assertEqual(flt.filter(rule, msg_idea), False)
-        rule = psr.parse('Category in ["Phishing" , "Attempt.Login"]')
-        self.assertEqual(flt.filter(rule, msg_idea), True)
-        rule = psr.parse('Category IN ["Phishing" , "Spam"]')
-        self.assertEqual(flt.filter(rule, msg_idea), False)
-        rule = psr.parse('Category is ["Attempt.Login"]')
-        self.assertEqual(flt.filter(rule, msg_idea), True)
-        rule = psr.parse('Category IS ["Phishing" , "Attempt.Login"]')
-        self.assertEqual(flt.filter(rule, msg_idea), False)
-        rule = psr.parse('ConnCount == 2')
-        self.assertEqual(flt.filter(rule, msg_idea), True)
-        rule = psr.parse('ConnCount eq 4')
-        self.assertEqual(flt.filter(rule, msg_idea), False)
-        rule = psr.parse('ConnCount != 2')
-        self.assertEqual(flt.filter(rule, msg_idea), False)
-        rule = psr.parse('ConnCount ne 4')
-        self.assertEqual(flt.filter(rule, msg_idea), True)
-        rule = psr.parse('ConnCount > 2')
-        self.assertEqual(flt.filter(rule, msg_idea), False)
-        rule = psr.parse('ConnCount gt 1')
-        self.assertEqual(flt.filter(rule, msg_idea), True)
-        rule = psr.parse('ConnCount >= 2')
-        self.assertEqual(flt.filter(rule, msg_idea), True)
-        rule = psr.parse('ConnCount ge 1')
-        self.assertEqual(flt.filter(rule, msg_idea), True)
-        rule = psr.parse('ConnCount GE 3')
-        self.assertEqual(flt.filter(rule, msg_idea), False)
-        rule = psr.parse('ConnCount < 2')
-        self.assertEqual(flt.filter(rule, msg_idea), False)
-        rule = psr.parse('ConnCount lt 3')
-        self.assertEqual(flt.filter(rule, msg_idea), True)
-        rule = psr.parse('ConnCount <= 2')
-        self.assertEqual(flt.filter(rule, msg_idea), True)
-        rule = psr.parse('ConnCount le 3')
-        self.assertEqual(flt.filter(rule, msg_idea), True)
-        rule = psr.parse('ConnCount LE 1')
-        self.assertEqual(flt.filter(rule, msg_idea), False)
-
-    def test_03_basic_math(self):
+    def test_03_parsed_comparison(self):
         """
-        Perform basic math tests.
+        Perform filtering tests with basic parsed comparison operations.
         """
         self.maxDiff = None
 
-        msg_idea = lite.Idea(self.test_msg1)
-        flt = DataObjectFilter()
-        psr = PynspectFilterParser()
-        psr.build()
+        rule = self.build_rule('ID == "e214d2d9-359b-443d-993d-3cc5637107a0"')
+        self.assertEqual(self.check_rule(rule), True)
+        rule = self.build_rule('ID eq "e214d2d9-359b-443d-993d-3cc5637107"')
+        self.assertEqual(self.check_rule(rule), False)
+        rule = self.build_rule('ID != "e214d2d9-359b-443d-993d-3cc5637107a0"')
+        self.assertEqual(self.check_rule(rule), False)
+        rule = self.build_rule('ID ne "e214d2d9-359b-443d-993d-3cc5637107"')
+        self.assertEqual(self.check_rule(rule), True)
+
+        rule = self.build_rule('ID like "e214d2d9"')
+        self.assertEqual(self.check_rule(rule), True)
+        rule = self.build_rule('ID LIKE "xxxxxxxx"')
+        self.assertEqual(self.check_rule(rule), False)
+        rule = self.build_rule('Category in ["Phishing" , "Attempt.Login"]')
+        self.assertEqual(self.check_rule(rule), True)
+        rule = self.build_rule('Category IN ["Phishing" , "Spam"]')
+        self.assertEqual(self.check_rule(rule), False)
+        rule = self.build_rule('Category is ["Attempt.Login"]')
+        self.assertEqual(self.check_rule(rule), True)
+        rule = self.build_rule('Category IS ["Phishing" , "Attempt.Login"]')
+        self.assertEqual(self.check_rule(rule), False)
+        rule = self.build_rule('ConnCount == 2')
+        self.assertEqual(self.check_rule(rule), True)
+        rule = self.build_rule('ConnCount eq 4')
+        self.assertEqual(self.check_rule(rule), False)
+        rule = self.build_rule('ConnCount != 2')
+        self.assertEqual(self.check_rule(rule), False)
+        rule = self.build_rule('ConnCount ne 4')
+        self.assertEqual(self.check_rule(rule), True)
+        rule = self.build_rule('ConnCount > 2')
+        self.assertEqual(self.check_rule(rule), False)
+        rule = self.build_rule('ConnCount gt 1')
+        self.assertEqual(self.check_rule(rule), True)
+        rule = self.build_rule('ConnCount >= 2')
+        self.assertEqual(self.check_rule(rule), True)
+        rule = self.build_rule('ConnCount ge 1')
+        self.assertEqual(self.check_rule(rule), True)
+        rule = self.build_rule('ConnCount GE 3')
+        self.assertEqual(self.check_rule(rule), False)
+        rule = self.build_rule('ConnCount < 2')
+        self.assertEqual(self.check_rule(rule), False)
+        rule = self.build_rule('ConnCount lt 3')
+        self.assertEqual(self.check_rule(rule), True)
+        rule = self.build_rule('ConnCount <= 2')
+        self.assertEqual(self.check_rule(rule), True)
+        rule = self.build_rule('ConnCount le 3')
+        self.assertEqual(self.check_rule(rule), True)
+        rule = self.build_rule('ConnCount LE 1')
+        self.assertEqual(self.check_rule(rule), False)
+
+    def test_04_basic_math(self):
+        """
+        Perform filtering tests with basic math operations.
+        """
+        self.maxDiff = None
 
         rule = MathBinOpRule('OP_PLUS', VariableRule("ConnCount"), IntegerRule(1))
-        self.assertEqual(flt.filter(rule, msg_idea), 3)
+        self.assertEqual(self.check_rule(rule), 3)
         rule = MathBinOpRule('OP_MINUS', VariableRule("ConnCount"), IntegerRule(1))
-        self.assertEqual(flt.filter(rule, msg_idea), 1)
+        self.assertEqual(self.check_rule(rule), 1)
         rule = MathBinOpRule('OP_TIMES', VariableRule("ConnCount"), IntegerRule(5))
-        self.assertEqual(flt.filter(rule, msg_idea), 10)
+        self.assertEqual(self.check_rule(rule), 10)
         rule = MathBinOpRule('OP_DIVIDE', VariableRule("ConnCount"), IntegerRule(2))
-        self.assertEqual(flt.filter(rule, msg_idea), 1)
+        self.assertEqual(self.check_rule(rule), 1)
         rule = MathBinOpRule('OP_MODULO', VariableRule("ConnCount"), IntegerRule(2))
-        self.assertEqual(flt.filter(rule, msg_idea), 0)
+        self.assertEqual(self.check_rule(rule), 0)
 
-        rule = psr.parse('ConnCount + 1')
-        self.assertEqual(flt.filter(rule, msg_idea), 3)
-        rule = psr.parse('ConnCount - 1')
-        self.assertEqual(flt.filter(rule, msg_idea), 1)
-        rule = psr.parse('ConnCount * 5')
-        self.assertEqual(flt.filter(rule, msg_idea), 10)
-        rule = psr.parse('ConnCount / 2')
-        self.assertEqual(flt.filter(rule, msg_idea), 1)
-        rule = psr.parse('ConnCount % 2')
-        self.assertEqual(flt.filter(rule, msg_idea), 0)
+    def test_05_parsed_math(self):
+        """
+        Perform filtering tests with parsed math operations.
+        """
+        self.maxDiff = None
 
-    def test_04_basic_compilations(self):
+        rule = self.build_rule('ConnCount + 1')
+        self.assertEqual(self.check_rule(rule), 3)
+        rule = self.build_rule('ConnCount - 1')
+        self.assertEqual(self.check_rule(rule), 1)
+        rule = self.build_rule('ConnCount * 5')
+        self.assertEqual(self.check_rule(rule), 10)
+        rule = self.build_rule('ConnCount / 2')
+        self.assertEqual(self.check_rule(rule), 1)
+        rule = self.build_rule('ConnCount % 2')
+        self.assertEqual(self.check_rule(rule), 0)
+
+    def test_06_advanced_filters(self):
         """
         Perform advanced filtering tests.
         """
         self.maxDiff = None
 
-        self.assertEqual(clean_variable('Target.IP4'), 'Target.IP4')
-        self.assertEqual(clean_variable('Target[1].IP4'), 'Target.IP4')
-        self.assertEqual(clean_variable('Target[1].IP4[22]'), 'Target.IP4')
-
-        cpl = IDEAFilterCompiler()
-        psr = PynspectFilterParser()
-        psr.build()
-
-        rule = psr.parse('(DetectTime == "2016-06-21T13:08:27Z")')
-        self.assertEqual(repr(rule), "COMPBINOP(VARIABLE('DetectTime') OP_EQ CONSTANT('2016-06-21T13:08:27Z'))")
-        res = cpl.compile(rule)
-        self.assertEqual(repr(res), "COMPBINOP(VARIABLE('DetectTime') OP_EQ DATETIME(datetime.datetime(2016, 6, 21, 13, 8, 27)))")
-
-        rule = psr.parse('(DetectTime == 2016-06-21T13:08:27Z)')
-        self.assertEqual(repr(rule), "COMPBINOP(VARIABLE('DetectTime') OP_EQ DATETIME('2016-06-21T13:08:27Z'))")
-        res = cpl.compile(rule)
-        self.assertEqual(repr(res), "COMPBINOP(VARIABLE('DetectTime') OP_EQ DATETIME(datetime.datetime(2016, 6, 21, 13, 8, 27)))")
-
-        rule = psr.parse('(Source.IP4 == "188.14.166.39")')
-        self.assertEqual(repr(rule), "COMPBINOP(VARIABLE('Source.IP4') OP_EQ CONSTANT('188.14.166.39'))")
-        res = cpl.compile(rule)
-        self.assertEqual(repr(res), "COMPBINOP(VARIABLE('Source.IP4') OP_EQ IPV4(IP4('188.14.166.39')))")
-
-        rule = psr.parse('(Source.IP4 == 188.14.166.39)')
-        self.assertEqual(repr(rule), "COMPBINOP(VARIABLE('Source.IP4') OP_EQ IPV4('188.14.166.39'))")
-        res = cpl.compile(rule)
-        self.assertEqual(repr(res), "COMPBINOP(VARIABLE('Source.IP4') OP_EQ IPV4(IP4('188.14.166.39')))")
-
-        rule = psr.parse('5 + 6 - 9')
-        self.assertEqual(repr(rule), "MATHBINOP(INTEGER(5) OP_PLUS MATHBINOP(INTEGER(6) OP_MINUS INTEGER(9)))")
-        res = cpl.compile(rule)
-        self.assertEqual(repr(res), "INTEGER(2)")
-
-        rule = psr.parse('Test + 10 - 9')
-        self.assertEqual(repr(rule), "MATHBINOP(VARIABLE('Test') OP_PLUS MATHBINOP(INTEGER(10) OP_MINUS INTEGER(9)))")
-        res = cpl.compile(rule)
-        self.assertEqual(repr(res), "MATHBINOP(VARIABLE('Test') OP_PLUS INTEGER(1))")
-
-        rule = psr.parse('Test + (10 - 9)')
-        self.assertEqual(repr(rule), "MATHBINOP(VARIABLE('Test') OP_PLUS MATHBINOP(INTEGER(10) OP_MINUS INTEGER(9)))")
-        res = cpl.compile(rule)
-        self.assertEqual(repr(res), "MATHBINOP(VARIABLE('Test') OP_PLUS INTEGER(1))")
-
-        rule = psr.parse('(Test + 10) - 9')
-        self.assertEqual(repr(rule), "MATHBINOP(MATHBINOP(VARIABLE('Test') OP_PLUS INTEGER(10)) OP_MINUS INTEGER(9))")
-        res = cpl.compile(rule)
-        self.assertEqual(repr(res), "MATHBINOP(MATHBINOP(VARIABLE('Test') OP_PLUS INTEGER(10)) OP_MINUS INTEGER(9))")
-
-        rule = psr.parse('9 - 6 + Test')
-        self.assertEqual(repr(rule), "MATHBINOP(INTEGER(9) OP_MINUS MATHBINOP(INTEGER(6) OP_PLUS VARIABLE('Test')))")
-        res = cpl.compile(rule)
-        self.assertEqual(repr(res), "MATHBINOP(INTEGER(9) OP_MINUS MATHBINOP(INTEGER(6) OP_PLUS VARIABLE('Test')))")
-
-        rule = psr.parse('9 - (6 + Test)')
-        self.assertEqual(repr(rule), "MATHBINOP(INTEGER(9) OP_MINUS MATHBINOP(INTEGER(6) OP_PLUS VARIABLE('Test')))")
-        res = cpl.compile(rule)
-        self.assertEqual(repr(res), "MATHBINOP(INTEGER(9) OP_MINUS MATHBINOP(INTEGER(6) OP_PLUS VARIABLE('Test')))")
-
-        rule = psr.parse('(9 - 6) + Test')
-        self.assertEqual(repr(rule), "MATHBINOP(MATHBINOP(INTEGER(9) OP_MINUS INTEGER(6)) OP_PLUS VARIABLE('Test'))")
-        res = cpl.compile(rule)
-        self.assertEqual(repr(res), "MATHBINOP(INTEGER(3) OP_PLUS VARIABLE('Test'))")
-
-    def test_05_advanced_filters(self):
-        """
-        Perform advanced filtering tests.
-        """
-        self.maxDiff = None
-
-        msg_idea = lite.Idea(self.test_msg1)
-        flt = DataObjectFilter()
-        cpl = IDEAFilterCompiler()
-        psr = PynspectFilterParser()
-        psr.build()
-
-        rule = psr.parse('DetectTime + 3600')
-        self.assertEqual(repr(rule), "MATHBINOP(VARIABLE('DetectTime') OP_PLUS INTEGER(3600))")
-        rule = cpl.compile(rule)
+        rule = self.build_rule('DetectTime + 3600')
         self.assertEqual(repr(rule), "MATHBINOP(VARIABLE('DetectTime') OP_PLUS TIMEDELTA(datetime.timedelta(0, 3600)))")
-        # Be careful about timezones - comparison must not be performed using absolute number,
-        # additionally, Python2 doesn't know timestamp():
         expected_res = (datetime.datetime(2016, 6, 21, 13, 8, 27) + datetime.timedelta(seconds = 3600))
-        if hasattr(expected_res, "timestamp"):
-            tsd_sec = expected_res.timestamp()
-        else:
-            tsd_sec = _py2_timestamp(expected_res)
-        self.assertEqual(flt.filter(rule, msg_idea), tsd_sec)
+        self.assertEqual(self.check_rule(rule), expected_res)
 
-        rule = psr.parse('(ConnCount + 10) > 11')
+        rule = self.build_rule('(ConnCount + 10) > 11')
         self.assertEqual(repr(rule), "COMPBINOP(MATHBINOP(VARIABLE('ConnCount') OP_PLUS INTEGER(10)) OP_GT INTEGER(11))")
-        rule = cpl.compile(rule)
-        self.assertEqual(repr(rule), "COMPBINOP(MATHBINOP(VARIABLE('ConnCount') OP_PLUS INTEGER(10)) OP_GT INTEGER(11))")
-        self.assertEqual(flt.filter(rule, msg_idea), True)
+        self.assertEqual(self.check_rule(rule), True)
 
-        rule = psr.parse('(ConnCount + 3) < 5')
+        rule = self.build_rule('(ConnCount + 3) < 5')
         self.assertEqual(repr(rule), "COMPBINOP(MATHBINOP(VARIABLE('ConnCount') OP_PLUS INTEGER(3)) OP_LT INTEGER(5))")
-        rule = cpl.compile(rule)
-        self.assertEqual(repr(rule), "COMPBINOP(MATHBINOP(VARIABLE('ConnCount') OP_PLUS INTEGER(3)) OP_LT INTEGER(5))")
-        self.assertEqual(flt.filter(rule, msg_idea), False)
+        self.assertEqual(self.check_rule(rule), False)
 
-        rule = psr.parse('((ConnCount + 3) < 5) or ((ConnCount + 10) > 11)')
+        rule = self.build_rule('((ConnCount + 3) < 5) or ((ConnCount + 10) > 11)')
         self.assertEqual(repr(rule), "LOGBINOP(COMPBINOP(MATHBINOP(VARIABLE('ConnCount') OP_PLUS INTEGER(3)) OP_LT INTEGER(5)) OP_OR COMPBINOP(MATHBINOP(VARIABLE('ConnCount') OP_PLUS INTEGER(10)) OP_GT INTEGER(11)))")
-        rule = cpl.compile(rule)
-        self.assertEqual(repr(rule), "LOGBINOP(COMPBINOP(MATHBINOP(VARIABLE('ConnCount') OP_PLUS INTEGER(3)) OP_LT INTEGER(5)) OP_OR COMPBINOP(MATHBINOP(VARIABLE('ConnCount') OP_PLUS INTEGER(10)) OP_GT INTEGER(11)))")
-        self.assertEqual(flt.filter(rule, msg_idea), True)
+        self.assertEqual(self.check_rule(rule), True)
 
-        rule = psr.parse('(DetectTime == 2016-06-21T13:08:27Z)')
-        self.assertEqual(repr(rule), "COMPBINOP(VARIABLE('DetectTime') OP_EQ DATETIME('2016-06-21T13:08:27Z'))")
-        rule = cpl.compile(rule)
+        rule = self.build_rule('(DetectTime == 2016-06-21T13:08:27Z)')
         self.assertEqual(repr(rule), "COMPBINOP(VARIABLE('DetectTime') OP_EQ DATETIME(datetime.datetime(2016, 6, 21, 13, 8, 27)))")
-        self.assertEqual(flt.filter(rule, msg_idea), True)
-        rule = psr.parse('(DetectTime != 2016-06-21T13:08:27Z)')
-        self.assertEqual(repr(rule), "COMPBINOP(VARIABLE('DetectTime') OP_NE DATETIME('2016-06-21T13:08:27Z'))")
-        rule = cpl.compile(rule)
+        self.assertEqual(self.check_rule(rule), True)
+        rule = self.build_rule('(DetectTime != 2016-06-21T13:08:27Z)')
         self.assertEqual(repr(rule), "COMPBINOP(VARIABLE('DetectTime') OP_NE DATETIME(datetime.datetime(2016, 6, 21, 13, 8, 27)))")
-        self.assertEqual(flt.filter(rule, msg_idea), False)
-        rule = psr.parse('(DetectTime >= 2016-06-21T14:08:27Z)')
-        self.assertEqual(repr(rule), "COMPBINOP(VARIABLE('DetectTime') OP_GE DATETIME('2016-06-21T14:08:27Z'))")
-        rule = cpl.compile(rule)
+        self.assertEqual(self.check_rule(rule), False)
+        rule = self.build_rule('(DetectTime >= 2016-06-21T14:08:27Z)')
         self.assertEqual(repr(rule), "COMPBINOP(VARIABLE('DetectTime') OP_GE DATETIME(datetime.datetime(2016, 6, 21, 14, 8, 27)))")
-        self.assertEqual(flt.filter(rule, msg_idea), False)
-        rule = psr.parse('(DetectTime <= 2016-06-21T14:08:27Z)')
-        self.assertEqual(repr(rule), "COMPBINOP(VARIABLE('DetectTime') OP_LE DATETIME('2016-06-21T14:08:27Z'))")
-        rule = cpl.compile(rule)
+        self.assertEqual(self.check_rule(rule), False)
+        rule = self.build_rule('(DetectTime <= 2016-06-21T14:08:27Z)')
         self.assertEqual(repr(rule), "COMPBINOP(VARIABLE('DetectTime') OP_LE DATETIME(datetime.datetime(2016, 6, 21, 14, 8, 27)))")
-        self.assertEqual(flt.filter(rule, msg_idea), True)
+        self.assertEqual(self.check_rule(rule), True)
+        rule = self.build_rule('DetectTime < (utcnow() + 05:00:00)')
+        self.assertEqual(repr(rule), "COMPBINOP(VARIABLE('DetectTime') OP_LT MATHBINOP(FUNCTION(utcnow()) OP_PLUS TIMEDELTA(datetime.timedelta(0, 18000))))")
+        self.assertEqual(self.check_rule(rule), True)
+        rule = self.build_rule('DetectTime > (utcnow() - 05:00:00)')
+        self.assertEqual(repr(rule), "COMPBINOP(VARIABLE('DetectTime') OP_GT MATHBINOP(FUNCTION(utcnow()) OP_MINUS TIMEDELTA(datetime.timedelta(0, 18000))))")
+        self.assertEqual(self.check_rule(rule), False)
 
-        rule = psr.parse('(Source.IP4 == 188.14.166.39)')
-        self.assertEqual(repr(rule), "COMPBINOP(VARIABLE('Source.IP4') OP_EQ IPV4('188.14.166.39'))")
-        rule = cpl.compile(rule)
+        rule = self.build_rule('(Source.IP4 == 188.14.166.39)')
         self.assertEqual(repr(rule), "COMPBINOP(VARIABLE('Source.IP4') OP_EQ IPV4(IP4('188.14.166.39')))")
-        self.assertEqual(flt.filter(rule, msg_idea), True)
+        self.assertEqual(self.check_rule(rule), True)
 
-        rule = psr.parse('(Source.IP4 in ["188.14.166.39","188.14.166.40","188.14.166.41"])')
-        self.assertEqual(repr(rule), "COMPBINOP(VARIABLE('Source.IP4') OP_IN LIST(CONSTANT('188.14.166.39'), CONSTANT('188.14.166.40'), CONSTANT('188.14.166.41')))")
-        rule = cpl.compile(rule)
+        rule = self.build_rule('(Source.IP4 in ["188.14.166.39","188.14.166.40","188.14.166.41"])')
         self.assertEqual(repr(rule), "COMPBINOP(VARIABLE('Source.IP4') OP_IN IPLIST(IPV4(IP4('188.14.166.39')), IPV4(IP4('188.14.166.40')), IPV4(IP4('188.14.166.41'))))")
-        self.assertEqual(flt.filter(rule, msg_idea), True)
+        self.assertEqual(self.check_rule(rule), True)
 
         # list with CIDR addresses
-        rule = psr.parse('(Source.IP4 in ["188.14.166.0/24","10.0.0.0/8","189.14.166.41"])')
-        self.assertEqual(repr(rule), "COMPBINOP(VARIABLE('Source.IP4') OP_IN LIST(CONSTANT('188.14.166.0/24'), CONSTANT('10.0.0.0/8'), CONSTANT('189.14.166.41')))")
-        rule = cpl.compile(rule)
+        rule = self.build_rule('(Source.IP4 in ["188.14.166.0/24","10.0.0.0/8","189.14.166.41"])')
         self.assertEqual(repr(rule), "COMPBINOP(VARIABLE('Source.IP4') OP_IN IPLIST(IPV4(IP4Net('188.14.166.0/24')), IPV4(IP4Net('10.0.0.0/8')), IPV4(IP4('189.14.166.41'))))")
-        self.assertEqual(flt.filter(rule, msg_idea), True)
+        self.assertEqual(self.check_rule(rule), True)
 
     def test_06_shortcuts(self):
         """
         Perform tests of shortcut methods.
         """
         self.maxDiff = None
-
-        msg_idea = lite.Idea(self.test_msg1)
 
         # Let the shortcut method initialize everything.
         flt = DataObjectFilter(
@@ -454,7 +376,7 @@ class TestDataObjectFilterIDEA(unittest.TestCase):
         )
         rule = flt.prepare('(Source.IP4 == 188.14.166.39)')
         self.assertEqual(repr(rule), "COMPBINOP(VARIABLE('Source.IP4') OP_EQ IPV4(IP4('188.14.166.39')))")
-        self.assertEqual(flt.filter(rule, msg_idea), True)
+        self.assertEqual(self.check_rule(rule), True)
 
         # Create parser and compiler instances by hand, but register them into filter.
         cpl = IDEAFilterCompiler()
@@ -466,7 +388,8 @@ class TestDataObjectFilterIDEA(unittest.TestCase):
         )
         rule = flt.prepare('(Source.IP4 == 188.14.166.39)')
         self.assertEqual(repr(rule), "COMPBINOP(VARIABLE('Source.IP4') OP_EQ IPV4(IP4('188.14.166.39')))")
-        self.assertEqual(flt.filter(rule, msg_idea), True)
+        self.assertEqual(self.check_rule(rule), True)
+
 
 #-------------------------------------------------------------------------------
 

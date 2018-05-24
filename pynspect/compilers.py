@@ -12,14 +12,14 @@
 
 """
 This module provides tools for compiling filtering rule trees into data structures
-more appropriate for actual filtering.
+more appropriate for actual filtering of `IDEA <https://idea.cesnet.cz/en/index>`__ messages.
 
 There are following main tools in this package:
 
 * :py:class:`IDEAFilterCompiler`
 
   Filter compiler, that ensures appropriate data types for correct variable
-  comparison evaluation.
+  comparison evaluation in `IDEA <https://idea.cesnet.cz/en/index>`__ messages.
 
 """
 
@@ -33,12 +33,16 @@ import datetime
 
 
 import ipranges
-from pynspect.rules import IPV4Rule, IPV6Rule, DatetimeRule, TimedeltaRule, IntegerRule, FloatRule, NumberRule, VariableRule,\
-    LogicalBinOpRule, UnaryOperationRule, ComparisonBinOpRule, MathBinOpRule, ConstantRule, ListRule
+from pynspect.rules import Rule, IPV4Rule, IPV6Rule, DatetimeRule, TimedeltaRule,\
+    IntegerRule, FloatRule, NumberRule, VariableRule, LogicalBinOpRule,\
+    UnaryOperationRule, ComparisonBinOpRule, MathBinOpRule, ConstantRule,\
+    ListRule, FunctionRule
 from pynspect.traversers import ListIP, BaseFilteringTreeTraverser
 
 
 TIMESTAMP_RE = re.compile(r"^([0-9]{4})-([0-9]{2})-([0-9]{2})[Tt]([0-9]{2}):([0-9]{2}):([0-9]{2})(?:\.([0-9]+))?([Zz]|(?:[+-][0-9]{2}:[0-9]{2}))$")
+
+DURATION_RE = re.compile(r"^((?P<days>[0-9]+)[D|d])?(?P<hrs>[0-9]{2}):(?P<mins>[0-9]{2}):(?P<secs>[0-9]{2})$")
 
 
 def compile_ip_v4(rule):
@@ -74,7 +78,7 @@ def compile_datetime(rule):
         return DatetimeRule(datetime.datetime.fromtimestamp(float(rule.value)))
     except (TypeError, ValueError):
         pass
-    # Try RFC3339 string
+    # Try RFC3339 timestamp string
     res = TIMESTAMP_RE.match(str(rule.value))
     if res is not None:
         year, month, day, hour, minute, second = (int(n or 0) for n in res.group(*range(1, 7)))
@@ -90,29 +94,45 @@ def compile_datetime(rule):
 def compile_timedelta(rule):
     """
     Compiler helper method: attempt to compile constant into object representing
-    datetime or timedelta object to enable relations and thus simple comparisons
+    timedelta object to enable math operations and relations with datetime objects
     using Python operators.
     """
     if isinstance(rule.value, datetime.timedelta):
         return rule
     try:
+        # Try numeric type
         return TimedeltaRule(datetime.timedelta(seconds = int(rule.value)))
     except:
         pass
+    # Try RFC3339 timestamp string
+    res = DURATION_RE.match(str(rule.value))
+    if res is not None:
+        days, hours, minutes, seconds = (int(n or 0) for n in res.group('days','hrs','mins','secs'))
+        return TimedeltaRule(datetime.timedelta(days = days, hours = hours, minutes = minutes, seconds = seconds))
     else:
         raise ValueError("Wrong timedelta format '{}'".format(rule.value))
 
 def compile_timeoper(rule):
     """
-
+    Compiler helper method: attempt to compile constant into object representing
+    datetime or timedelta object to enable relations and thus simple comparisons
+    using Python operators.
     """
     if isinstance(rule.value, (datetime.datetime, datetime.timedelta)):
         return rule
     if isinstance(rule, NumberRule):
         return compile_timedelta(rule)
     if isinstance(rule, ConstantRule):
-        return compile_datetime(rule)
-    raise ValueError("Wrong math time operation operand '{}'".format(rule))
+        try:
+            return compile_datetime(rule)
+        except ValueError:
+            pass
+        try:
+            return compile_timedelta(rule)
+        except ValueError:
+            pass
+    raise ValueError("Wrong time operation constant '{}'".format(rule))
+
 
 CVRE = re.compile(r'\[\d+\]')
 def clean_variable(var):
@@ -145,27 +165,37 @@ class IPListRule(ListRule):
         return "IPLIST({})".format(', '.join([repr(v) for v in self.value]))
 
 
-COMPILATIONS_IDEA_OBJECT_CMP = {
-    'CreateTime':   {'comp_i': compile_timeoper, 'comp_l': ListRule },
-    'DetectTime':   {'comp_i': compile_timeoper, 'comp_l': ListRule },
-    'EventTime':    {'comp_i': compile_timeoper, 'comp_l': ListRule },
-    'CeaseTime':    {'comp_i': compile_timeoper, 'comp_l': ListRule },
-    'WinStartTime': {'comp_i': compile_timeoper, 'comp_l': ListRule },
-    'WinEndTime':   {'comp_i': compile_timeoper, 'comp_l': ListRule },
-    'Source.IP4':   {'comp_i': compile_ip_v4,    'comp_l': IPListRule },
-    'Target.IP4':   {'comp_i': compile_ip_v4,    'comp_l': IPListRule },
-    'Source.IP6':   {'comp_i': compile_ip_v6,    'comp_l': IPListRule },
-    'Target.IP6':   {'comp_i': compile_ip_v6,    'comp_l': IPListRule },
-}
+class ConversionRule(Rule):
+    """
+    Custom rule for delayed rule conversions. Can be used by the compiler to
+    wrap given rule tree into rule, that can perform arbitrary conversion or
+    manipulation with the result of traversal of that rule tree before returning
+    the result.
+    """
+    def __init__(self, conversion, rule):
+        self.conversion = conversion
+        self.rule = rule
 
-COMPILATIONS_IDEA_OBJECT_MTH = {
-    'CreateTime':   {'comp_i': compile_timeoper, 'comp_l': ListRule },
-    'DetectTime':   {'comp_i': compile_timeoper, 'comp_l': ListRule },
-    'EventTime':    {'comp_i': compile_timeoper, 'comp_l': ListRule },
-    'CeaseTime':    {'comp_i': compile_timeoper, 'comp_l': ListRule },
-    'WinStartTime': {'comp_i': compile_timeoper, 'comp_l': ListRule },
-    'WinEndTime':   {'comp_i': compile_timeoper, 'comp_l': ListRule },
-}
+    def __str__(self):
+        return '{{{}}}:{}'.format(str(self.rule), self.conversion.__name__)
+
+    def __repr__(self):
+        return "CONVERSION({}:{})".format(repr(self.rule), self.conversion.__name__)
+
+    def traverse(self, traverser, **kwargs):
+        """
+        Implementation of mandatory interface for traversing the whole rule tree.
+        This method will call the ``traverse`` method of child rule tree and
+        then perform arbitrary conversion of the result before returning it back.
+        The optional ``kwargs`` are passed down to traverser callback as additional
+        arguments and can be used to provide additional data or context.
+
+        :param pynspect.rules.RuleTreeTraverser traverser: Traverser object providing appropriate interface.
+        :param dict kwargs: Additional optional keyword arguments to be passed down to traverser callback.
+        """
+        result = self.rule.traverse(traverser, **kwargs)
+        return self.conversion(result)
+
 
 class IDEAFilterCompiler(BaseFilteringTreeTraverser):
     """
@@ -183,6 +213,26 @@ class IDEAFilterCompiler(BaseFilteringTreeTraverser):
     >>> rule = cpl.compile(rule)
     >>> result = flt.filter(rule, test_msg)
     """
+
+    def __init__(self):
+        super(IDEAFilterCompiler, self).__init__()
+
+        self.compilations_variable = {}
+        self.compilations_function = {}
+
+        self.register_variable_compilation('CreateTime',   compile_timeoper, ListRule)
+        self.register_variable_compilation('DetectTime',   compile_timeoper, ListRule)
+        self.register_variable_compilation('EventTime',    compile_timeoper, ListRule)
+        self.register_variable_compilation('CeaseTime',    compile_timeoper, ListRule)
+        self.register_variable_compilation('WinStartTime', compile_timeoper, ListRule)
+        self.register_variable_compilation('WinEndTime',   compile_timeoper, ListRule)
+        self.register_variable_compilation('Source.IP4',   compile_ip_v4,    IPListRule)
+        self.register_variable_compilation('Target.IP4',   compile_ip_v4,    IPListRule)
+        self.register_variable_compilation('Source.IP6',   compile_ip_v6,    IPListRule)
+        self.register_variable_compilation('Target.IP6',   compile_ip_v6,    IPListRule)
+
+        self.register_function_compilation('utcnow', compile_timeoper, ListRule)
+
     def compile(self, rule):
         """
         Compile given filtering rule into format appropriate for processing IDEA
@@ -194,50 +244,125 @@ class IDEAFilterCompiler(BaseFilteringTreeTraverser):
         """
         return rule.traverse(self)
 
+    def register_variable_compilation(self, path, compilation_cbk, listclass):
+        """
+        Register given compilation method for variable on given path.
+
+        :param str path: JPath for given variable.
+        :param callable compilation_cbk: Compilation callback to be called.
+        :param class listclass: List class to use for lists.
+        """
+        self.compilations_variable[path] = {
+            'callback':  compilation_cbk,
+            'listclass': listclass
+        }
+
+    def register_function_compilation(self, func, compilation_cbk, listclass):
+        """
+        Register given compilation method for given function.
+
+        :param str path: Function name.
+        :param callable compilation_cbk: Compilation callback to be called.
+        :param class listclass: List class to use for lists.
+        """
+        self.compilations_function[func] = {
+            'callback':  compilation_cbk,
+            'listclass': listclass
+        }
 
     #---------------------------------------------------------------------------
 
+    @staticmethod
+    def _cor_compile(rule, var, val, result_class, key, compilation_list):
+        """
+        Actual compilation worker method.
+        """
+        compilation = compilation_list.get(key, None)
+        if compilation:
+            if isinstance(val, ListRule):
+                result = []
+                for itemv in val.value:
+                    result.append(compilation['callback'](itemv))
 
-    def _compile_operation_rule(self, rule, left, right, compilations, result_class):
+                val = compilation['listclass'](result)
+            else:
+                val = compilation['callback'](val)
+        return result_class(rule.operation, var, val)
+
+    def _compile_operation_rule(self, rule, left, right, result_class):
+        """
+        Compile given operation rule, when possible for given compination of
+        operation operands.
         """
 
-        """
-        var = val = None
-        if isinstance(left, VariableRule) and not isinstance(right, VariableRule):
-            var = left
-            val = right
-        elif isinstance(right, VariableRule) and not isinstance(left, VariableRule):
-            var = right
-            val = left
-        if var and val:
-            path = clean_variable(var.value)
-            if path in compilations.keys():
-                compilation = compilations[path]
-                if isinstance(val, ListRule):
-                    result = []
-                    for itemv in val.value:
-                        result.append(compilation['comp_i'](itemv))
+        # Make sure variables always have constant with correct datatype on the
+        # opposite side of operation.
+        if isinstance(left, VariableRule) and isinstance(right, (ConstantRule, ListRule)):
+            return self._cor_compile(
+                rule,
+                left,
+                right,
+                result_class,
+                clean_variable(left.value),
+                self.compilations_variable
+            )
+        if isinstance(right, VariableRule) and isinstance(left, (ConstantRule, ListRule)):
+            return self._cor_compile(
+                rule,
+                right,
+                left,
+                result_class,
+                clean_variable(right.value),
+                self.compilations_variable
+            )
 
-                    right = compilation['comp_l'](result)
-                else:
-                    right = compilation['comp_i'](val)
+        # Make sure functions always have constant with correct datatype on the
+        # opposite side of operation.
+        if isinstance(left, FunctionRule) and isinstance(right, (ConstantRule, ListRule)):
+            return self._cor_compile(
+                rule,
+                left,
+                right,
+                result_class,
+                left.function,
+                self.compilations_function
+            )
+        if isinstance(right, FunctionRule) and isinstance(left, (ConstantRule, ListRule)):
+            return self._cor_compile(
+                rule,
+                right,
+                left,
+                result_class,
+                right.function,
+                self.compilations_function
+            )
+
+        # In all other cases just keep things the way they are.
         return result_class(rule.operation, left, right)
 
     def _calculate_operation_math(self, rule, left, right):
         """
-
+        Perform compilation of given math operation by actually calculating given
+        math expression.
         """
+
+        # Attempt to keep integer data type for the result, when possible.
         if isinstance(left, IntegerRule) and isinstance(right, IntegerRule):
             result = self.evaluate_binop_math(rule.operation, left.value, right.value)
             if isinstance(result, list):
                 return ListRule([IntegerRule(r) for r in result])
             return IntegerRule(result)
+
+        # Otherwise the result is float.
         if isinstance(left, NumberRule) and isinstance(right, NumberRule):
             result = self.evaluate_binop_math(rule.operation, left.value, right.value)
             if isinstance(result, list):
                 return ListRule([FloatRule(r) for r in result])
             return FloatRule(result)
+
+        # This point should never be reached.
         raise Exception()
+
 
     #---------------------------------------------------------------------------
 
@@ -316,7 +441,6 @@ class IDEAFilterCompiler(BaseFilteringTreeTraverser):
             rule,
             left,
             right,
-            COMPILATIONS_IDEA_OBJECT_CMP,
             ComparisonBinOpRule
         )
 
@@ -330,7 +454,6 @@ class IDEAFilterCompiler(BaseFilteringTreeTraverser):
             rule,
             left,
             right,
-            COMPILATIONS_IDEA_OBJECT_MTH,
             MathBinOpRule
         )
 
@@ -339,6 +462,12 @@ class IDEAFilterCompiler(BaseFilteringTreeTraverser):
         Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.unary_operation` interface.
         """
         return UnaryOperationRule(rule.operation, right)
+
+    def function(self, rule, args, **kwargs):
+        """
+        Implementation of :py:func:`pynspect.traversers.RuleTreeTraverser.function` interface.
+        """
+        return rule
 
 
 #-------------------------------------------------------------------------------

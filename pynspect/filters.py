@@ -14,7 +14,7 @@
 This module provides tools for data filtering based on filtering and query
 grammar.
 
-The filtering grammar is thoroughly described in following module:
+The filtering grammar is thoroughly described in following modules:
 
 * :py:mod:`pynspect.lexer`
 
@@ -40,6 +40,22 @@ There are following main tools in this package:
 
   Tool capable of filtering data structures according to given filtering rules.
 
+
+Available functions
+^^^^^^^^^^^^^^^^^^^
+
+* ``size``
+
+* ``time``
+
+* ``utcnow``
+
+Example filters
+^^^^^^^^^^^^^^^
+
+Example usage
+^^^^^^^^^^^^^
+
 .. warning::
 
     Be carefull with the grammar function names. Currently, there is a flaw in the expression
@@ -62,6 +78,7 @@ __credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>"
 
 
 import time
+import datetime
 
 from pynspect.rules import FilteringRuleException
 from pynspect.traversers import BaseFilteringTreeTraverser
@@ -95,6 +112,18 @@ def grfcbk_time(args):
         raise FilteringRuleException("The 'time' function does not take any arguments.")
     return time.time()
 
+def grfcbk_utcnow(args):
+    """
+    Grammar rule function callback: **utcnow**. This function will call the
+    :py:func:`datetime.datetime.utcnow` function and return the result.
+
+    :param list args: List of function arguments. Should be empty, but
+    :return: Current datetime in UTC timezone.
+    :rtype: datetime.datetime
+    """
+    if args:
+        raise FilteringRuleException("The 'utcnow' function does not take any arguments.")
+    return datetime.datetime.utcnow()
 
 #-------------------------------------------------------------------------------
 
@@ -129,8 +158,10 @@ class DataObjectFilter(BaseFilteringTreeTraverser):
 
     def __init__(self, parser = None, compiler = None):
         super(DataObjectFilter, self).__init__()
-        self.register_function('size', grfcbk_size)
-        self.register_function('time', grfcbk_time)
+
+        self.register_function('size',   grfcbk_size)
+        self.register_function('time',   grfcbk_time)
+        self.register_function('utcnow', grfcbk_utcnow)
 
         self.parser   = parser
         self.compiler = compiler

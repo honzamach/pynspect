@@ -41,20 +41,38 @@ There are following main tools in this package:
   Tool capable of filtering data structures according to given filtering rules.
 
 
-Available functions
-^^^^^^^^^^^^^^^^^^^
+Available filtering functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * ``size``
 
+    Return the size/length of given list. This enables writing rules like events
+    with more than five source addressess::
+
+        size(Source.IP4) > 5
+
+
 * ``time``
 
+    Return current Unix timestamp as ``float``.
+
 * ``utcnow``
+
+    Return current date and time in UTC timezone. This enables writing rules like
+    events with detection time older than two hours::
+
+        DetectTime < (utcnow() - 02:00:00)
+
 
 Example filters
 ^^^^^^^^^^^^^^^
 
-Example usage
-^^^^^^^^^^^^^
+Following is a non exhaustive list of example filtering rules::
+
+    DetectTime < (utcnow() - 02:00:00)
+    exists EventTime and exists DetectTime and EventTime > DetectTime
+    Category in ['Anomaly.Connection'] and Source.Type in ['Booter']
+    Category in ['Attempt.Exploit'] and (Target.Port in [3306] or Source.Proto in ['mysql'] or Target.Proto in ['mysql'])
 
 .. warning::
 

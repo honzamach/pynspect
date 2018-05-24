@@ -382,8 +382,8 @@ class ListRule(ValueRule):
         """
         Initialize the list with given rule. Optionally add next rule to the list.
 
-        :param pysnpect.rules.Rule rule: Rule to be added to the list.
-        :param pysnpect.rules.ListRule next_rule: Next rule in the chain.
+        :param pynspect.rules.Rule rule: Rule to be added to the list.
+        :param pynspect.rules.ListRule next_rule: Next rule in the chain.
         """
         if not isinstance(rule, list):
             rule = [rule]

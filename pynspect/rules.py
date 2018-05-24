@@ -33,6 +33,10 @@ There are following classes representing various binary and unary operations:
 * :py:class:`MathBinOpRule`
 * :py:class:`UnaryOperationRule`
 
+Additionally there is following class representing functions without/with arguments:
+
+* :py:class:`FunctionRule`
+
 Desired hierarchical rule tree can be created either programatically, or by
 parsing string rules using :py:mod:`pynspect.gparser`.
 
@@ -41,10 +45,8 @@ traverser interface:
 
 * :py:class:`pynspect.traversers.RuleTreeTraverser`
 
-There is a simple example implementation of rule tree traverser capable of
-printing rule tree into a formated string:
-
-* :py:class:`pynspect.traversers.PrintingTreeTraverser`
+Please refer to module :py:mod:`pynspect.traversers` for list of currently
+available RuleTree traversers.
 
 Rule evaluation
 ^^^^^^^^^^^^^^^
@@ -79,21 +81,54 @@ Rule evaluation
       compared with each other. First ``True`` result wins and operation immediatelly
       returns ``True``, ``False`` is returned otherwise.
 
-    * Math operations: ``+ - * / %``
+* Math operations: ``+ - * / %``
 
-      Current math operation implementation supports following options:
+    Current math operation implementation supports following options:
 
-        * Both operands are lists of the same length. In this case corresponding
-          elements at certain position within the list are evaluated with given
-          operation. Result is a list.
+    * Both operands are lists of the same length. In this case corresponding
+      elements at certain position within the list are evaluated with given
+      operation. Result is a list.
 
-        * One of the operands is a list, second is scalar value or list of the
-          size 1. In this case given operation is evaluated with each element of
-          the longer list. Result is a list.
+    * One of the operands is a list, second is scalar value or list of the
+      size 1. In this case given operation is evaluated with each element of
+      the longer list. Result is a list.
 
-        * Operands are lists of the different size. This option is **forbidden**
-          and the result is ``None``.
+    * Operands are lists of the different size. This option is **forbidden**
+      and the result is ``None``.
 
+* Functions: ``func1() func(192.168.1.1)``
+
+    Current implementation supports arbitrary functions. The grammar does not in
+    any way enforce or define list of available functions. This task is up to the
+    traverser (:py:mod:`pynspect.traversers`) that is going to be processing the
+    rule tree.
+
+    Functions can be with or without argument. Functions with argument can take
+    any expression as single argument. Please refer to :py:mod:`pynspect.gparser`
+    for definition of valid grammar. Following are examples of valid functions,
+    which should ilustrate this peculiarity::
+
+        func()
+        func(127.0.0.1)
+        func(::1)
+        func(2017-01-01T12:00:00Z)
+        func(1D00:00:00)
+        func(1)
+        func(1.1)
+        func(Test)
+        func(Test.Var)
+        func("constant")
+        func(sub())
+
+        func([127.0.0.1,127.0.0.2])
+        func([::1,::2])
+        func([2017-01-01T12:00:00Z,2017-02-01T12:00:00Z])
+        func([1D00:00:00,2D00:00:00])
+        func([1,2])
+        func([1.1,2.2])
+        func([Test,Another])
+        func([Test.Var,Another.Var])
+        func(["constant1","constant2"])
 """
 
 
@@ -132,7 +167,7 @@ class Rule(object):
         raise NotImplementedError()
 
 
-class ValueRule(Rule):
+class ValueRule(Rule):  # pylint: disable=locally-disabled,abstract-method
     """
     Base class for all filter tree value rules.
     """
@@ -384,14 +419,14 @@ class ListRule(ValueRule):
         return traverser.list(self, **kwargs)
 
 
-class OperationRule(Rule):
+class OperationRule(Rule):  # pylint: disable=locally-disabled,abstract-method
     """
     Base class for all expression operations (both unary and binary).
     """
     pass
 
 
-class BinaryOperationRule(OperationRule):
+class BinaryOperationRule(OperationRule):  # pylint: disable=locally-disabled,abstract-method
     """
     Base class for all expression binary operations.
     """
@@ -545,7 +580,7 @@ class FunctionRule(Rule):
     def traverse(self, traverser, **kwargs):
         """
         Implementation of mandatory interface for traversing the whole rule tree.
-        This method will call the implementation of :py:func:`pynspect.rules.RuleTreeTraverser.binary_operation_logical`
+        This method will call the implementation of :py:func:`pynspect.rules.RuleTreeTraverser.function`
         method with reference to ``self`` instance as first argument and with the
         result of traversing left subtree as second argument. The optional ``kwargs``
         are passed down to traverser callback as additional arguments and can be
@@ -554,10 +589,10 @@ class FunctionRule(Rule):
         :param pynspect.rules.RuleTreeTraverser traverser: Traverser object providing appropriate interface.
         :param dict kwargs: Additional optional keyword arguments to be passed down to traverser callback.
         """
-        art = []
+        atr = []
         for arg in self.args:
-            art.append(arg.traverse(traverser, **kwargs))
-        return traverser.function(self, art, **kwargs)
+            atr.append(arg.traverse(traverser, **kwargs))
+        return traverser.function(self, atr, **kwargs)
 
 #-------------------------------------------------------------------------------
 
@@ -607,3 +642,9 @@ if __name__ == "__main__":
     RULE_UNOP = UnaryOperationRule('OP_NOT', RULE_VAR)
     print("STR:  {}".format(str(RULE_UNOP)))
     print("REPR: {}".format(repr(RULE_UNOP)))
+    RULE_FUNC1 = FunctionRule('utcnow')
+    print("STR:  {}".format(str(RULE_FUNC1)))
+    print("REPR: {}".format(repr(RULE_FUNC1)))
+    RULE_FUNC2 = FunctionRule('resolve', RULE_IPV4)
+    print("STR:  {}".format(str(RULE_FUNC2)))
+    print("REPR: {}".format(repr(RULE_FUNC2)))

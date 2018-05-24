@@ -39,6 +39,7 @@ Grammar features
     * IPv4: ``127.0.0.1 127.0.0.1/32 127.0.0.1-127.0.0.5 127.0.0.1..127.0.0.5``
     * IPv6: ``::1 ::1/64 ::1-::5 ::1..::5``
     * Datetime: ``2017-01-01T12:00:00Z 2017-01-01t12:00:00.123-02:00``
+    * Timedelta: ``12:01:15 15D00:00:00 21d11:11:00``
     * Integer: ``0 1 42``
     * Float: ``3.14159``
 
@@ -61,7 +62,7 @@ Example expressions
 
 .. code-block:: python
 
-    time() > (CreateTime + 3600)
+    utcnow() > (CreateTime + 3600)
     CreateTime > 2017-01-01T12:00:00Z and Source.IP4 in [127.0.0.1, 127.0.0.2]
     Category in ['Attempt.Login'] and (Target.Proto in ['telnet'] or Source.Proto in ['telnet'] or Target.Port in [23])
 
@@ -116,6 +117,7 @@ Currently implemented grammar
     factor : IPV4
            | IPV6
            | DATETIME
+           | TIMEDELTA
            | INTEGER
            | FLOAT
            | VARIABLE
@@ -128,6 +130,7 @@ Currently implemented grammar
     list : IPV4
          | IPV6
          | DATETIME
+         | TIMEDELTA
          | INTEGER
          | FLOAT
          | VARIABLE
@@ -135,6 +138,7 @@ Currently implemented grammar
          | IPV4 COMMA list
          | IPV6 COMMA list
          | DATETIME COMMA list
+         | TIMEDELTA COMMA list
          | INTEGER COMMA list
          | FLOAT COMMA list
          | VARIABLE COMMA list
@@ -158,13 +162,15 @@ import logging
 import ply.yacc
 
 from pynspect.lexer import PynspectFilterLexer
-from pynspect.rules import IPV4Rule, IPV6Rule, DatetimeRule, IntegerRule, FloatRule, VariableRule, ConstantRule,\
-    LogicalBinOpRule, UnaryOperationRule, ComparisonBinOpRule, MathBinOpRule, FunctionRule, ListRule
+from pynspect.rules import IPV4Rule, IPV6Rule, DatetimeRule, TimedeltaRule,\
+    IntegerRule, FloatRule, VariableRule, ConstantRule, LogicalBinOpRule,\
+    UnaryOperationRule, ComparisonBinOpRule, MathBinOpRule, FunctionRule,\
+    ListRule
 
 
 class PynspectGrammarSyntaxError(Exception):
     """
-
+    Custom expression representing Pynspect grammar syntax error.
     """
     pass
 
@@ -240,6 +246,8 @@ class PynspectFilterParser():
             return IPV6Rule(tok[1])
         if tok[0] == 'DATETIME':
             return DatetimeRule(tok[1])
+        if tok[0] == 'TIMEDELTA':
+            return TimedeltaRule(tok[1])
         if tok[0] == 'INTEGER':
             return IntegerRule(tok[1])
         if tok[0] == 'FLOAT':
@@ -365,6 +373,7 @@ class PynspectFilterParser():
         """factor : IPV4
                   | IPV6
                   | DATETIME
+                  | TIMEDELTA
                   | INTEGER
                   | FLOAT
                   | VARIABLE
@@ -386,6 +395,7 @@ class PynspectFilterParser():
         """list : IPV4
                 | IPV6
                 | DATETIME
+                | TIMEDELTA
                 | INTEGER
                 | FLOAT
                 | VARIABLE
@@ -393,6 +403,7 @@ class PynspectFilterParser():
                 | IPV4 COMMA list
                 | IPV6 COMMA list
                 | DATETIME COMMA list
+                | TIMEDELTA COMMA list
                 | INTEGER COMMA list
                 | FLOAT COMMA list
                 | VARIABLE COMMA list

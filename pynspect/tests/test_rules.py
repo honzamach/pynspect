@@ -38,7 +38,7 @@ class TestPynspectRules(unittest.TestCase):
     Unit test class for testing the rules from :py:mod:`pynspect.rules` module.
     """
 
-    def test_01_basic(self):
+    def test_01_values(self):
         """
         Perform basic rules tests: instantinate and check all rule objects.
         """
@@ -73,6 +73,15 @@ class TestPynspectRules(unittest.TestCase):
         self.assertEqual(repr(rule_list), "LIST(VARIABLE('Test'), CONSTANT('constant'), IPV4('127.0.0.1'))")
         self.assertEqual(str(rule_list.value), "[VARIABLE('Test'), CONSTANT('constant'), IPV4('127.0.0.1')]")
         self.assertEqual(pformat(rule_list.value), "[VARIABLE('Test'), CONSTANT('constant'), IPV4('127.0.0.1')]")
+
+    def test_02_operations(self):
+        """
+        Perform basic rules tests: instantinate and check all rule objects.
+        """
+        self.maxDiff = None
+
+        rule_var = VariableRule("Test")
+        rule_integer = IntegerRule(15)
         rule_binop_l = LogicalBinOpRule("OP_OR", rule_var, rule_integer)
         self.assertEqual(str(rule_binop_l), "(Test OP_OR 15)")
         self.assertEqual(repr(rule_binop_l), "LOGBINOP(VARIABLE('Test') OP_OR INTEGER(15))")
@@ -88,9 +97,21 @@ class TestPynspectRules(unittest.TestCase):
         rule_unop = UnaryOperationRule("OP_NOT", rule_var)
         self.assertEqual(str(rule_unop), "(OP_NOT Test)")
         self.assertEqual(repr(rule_unop), "UNOP(OP_NOT VARIABLE('Test'))")
-        rule_func = FunctionRule('test', rule_const)
-        self.assertEqual(str(rule_func), "test(CONSTANT('constant'),)")
-        self.assertEqual(repr(rule_func), "FUNCTION(test(CONSTANT('constant'),))")
+
+    def test_03_functions(self):
+        """
+        Perform basic rules tests: instantinate and check all rule objects.
+        """
+        self.maxDiff = None
+
+        rule_integer = IntegerRule(15)
+        rule_func1 = FunctionRule('utcnow')
+        self.assertEqual(str(rule_func1), "utcnow()")
+        self.assertEqual(repr(rule_func1), "FUNCTION(utcnow())")
+        rule_func2 = FunctionRule('resolve', rule_integer)
+        self.assertEqual(str(rule_func2), "resolve(INTEGER(15),)")
+        self.assertEqual(repr(rule_func2), "FUNCTION(resolve(INTEGER(15),))")
+
 
 #-------------------------------------------------------------------------------
 

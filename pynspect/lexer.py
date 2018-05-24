@@ -59,14 +59,15 @@ Currently recognized grammar tokens
     RBRACK = r'\]'
 
     # Contant and variable tokens.
-    IPV4     = r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?:\/\d{1,2}|(?:-|..)\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})?'
-    IPV6     = r'[:a-fA-F0-9]+:[:a-fA-F0-9]*(?:\/\d{1,3}|(?:-|..)[:a-fA-F0-9]+:[:a-fA-F0-9]*)?'
-    DATETIME = r'[0-9]{4}-[0-9]{2}-[0-9]{2}[Tt][0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?(?:[Zz]|(?:[+-][0-9]{2}:[0-9]{2}))'
-    INTEGER  = r'\d+'
-    FLOAT    = r'\d+\.\d+'
-    CONSTANT = r'"([^"]+)"|\'([^\']+)\''
-    FUNCTION = r'[_a-zA-Z][_a-zA-Z0-9]{2,}\('
-    VARIABLE = r'[_a-zA-Z][-_a-zA-Z0-9]*(?:\[(?:\d+|-\d+|\#)\])?(?:\.?[a-zA-Z][-_a-zA-Z0-9]*(?:\[(?:\d+|-\d+|\#)\])?)*'
+    IPV4      = r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?:\/\d{1,2}|(?:-|..)\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})?'
+    IPV6      = r'[:a-fA-F0-9]+:[:a-fA-F0-9]*(?:\/\d{1,3}|(?:-|..)[:a-fA-F0-9]+:[:a-fA-F0-9]*)?'
+    DATETIME  = r'[0-9]{4}-[0-9]{2}-[0-9]{2}[Tt][0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?(?:[Zz]|(?:[+-][0-9]{2}:[0-9]{2}))'
+    TIMEDELTA = r'([0-9]+[D|d])?[0-9]{2}:[0-9]{2}:[0-9]{2}'
+    INTEGER   = r'\d+'
+    FLOAT     = r'\d+\.\d+'
+    CONSTANT  = r'"([^"]+)"|\'([^\']+)\''
+    FUNCTION  = r'[_a-zA-Z][_a-zA-Z0-9]{2,}\('
+    VARIABLE  = r'[_a-zA-Z][-_a-zA-Z0-9]*(?:\[(?:\d+|-\d+|\#)\])?(?:\.?[a-zA-Z][-_a-zA-Z0-9]*(?:\[(?:\d+|-\d+|\#)\])?)*'
 
 .. note::
 
@@ -195,6 +196,7 @@ class PynspectFilterLexer():
         'IPV4',
         'IPV6',
         'DATETIME',
+        'TIMEDELTA',
         'INTEGER',
         'FLOAT',
         'CONSTANT',
@@ -257,6 +259,12 @@ class PynspectFilterLexer():
         r'(-|\+|\*|/|%|like|LIKE|=~|in|IN|~~|is|IS|eq|EQ|==|ne|NE|!=|<>|ge|GE|>=|gt|GT|>|le|LE|<=|lt|LT|<|or|OR|\|\||xor|XOR|\^\^|and|AND|&&|not|NOT|!|exists|EXISTS|\?)'
         tok.type = self.reserved.get(tok.value)
         tok.value = tok.type
+        return tok
+
+    @staticmethod
+    def t_TIMEDELTA(tok):
+        r'([0-9]+[D|d])?[0-9]{2}:[0-9]{2}:[0-9]{2}'
+        tok.value = (tok.type, tok.value)
         return tok
 
     @staticmethod
@@ -342,6 +350,13 @@ class PynspectFilterLexer():
 if __name__ == "__main__":
 
     TEST_DATA = """
+        2016-06-21T13:08:27Z
+        2016-06-21t13:08:27z
+        2016-06-21T13:08:27+02:00
+        2016-06-21t13:08:27-02:00
+        15:15:15
+        15D15:15:15
+        15d15:15:15
         1 + 1 - 1 * 1 % 1
         OR 2 or 2 || 2
         XOR 3 xor 3 ^^ 3
@@ -362,11 +377,10 @@ if __name__ == "__main__":
         func1()
         func2(127.0.0.1)
         func3("argument")
+        1, 2, 3 , 4,127.0.0.1, 127.0.0.2
     """
 
-    TEST_DATA = """1, 2, 3 , 4,127.0.0.1, 127.0.0.2"""
-
-    # Build the lexer and try it out.
+    # Build the lexer and try it out on demonstration test data.
     DEMO_LEXER = PynspectFilterLexer()
     DEMO_LEXER.build(debug=1)
     print(DEMO_LEXER.test(TEST_DATA, "\n"))

@@ -102,7 +102,7 @@ help:
 
 
 show-version: FORCE
-	@PYTHONPATH=. python3 -c "import pynspect; print(pynspect.__version__);"
+	@PYTHONPATH=. python -c "import pynspect; print(pynspect.__version__);"
 
 
 #-------------------------------------------------------------------------------
@@ -112,7 +112,7 @@ deps: deps-python
 
 deps-python: FORCE
 	@echo "\n${GREEN}*** Installing Python dependencies ***${NC}\n"
-	@pip3 install -r requirements.pip --upgrade
+	@pip install -r requirements.pip --upgrade
 
 
 #-------------------------------------------------------------------------------
@@ -134,21 +134,25 @@ pyflakes: pyflakes-lib pyflakes-test
 
 pyflakes-lib: FORCE
 	@echo "\n${GREEN}*** Checking code with pyflakes ***${NC}\n"
-	-@python3 -m pyflakes $(DIR_LIB)/*.py
+	@echo python --version
+	-@python -m pyflakes $(DIR_LIB)/*.py
 
 pyflakes-test: FORCE
 	@echo "\n${GREEN}*** Checking test files with pyflakes ***${NC}\n"
-	-@python3 -m pyflakes $(DIR_LIB)/tests/*.py
+	@echo python --version
+	-@python -m pyflakes $(DIR_LIB)/tests/*.py
 
 pylint: pylint-lib pylint-test
 
 pylint-lib: FORCE
 	@echo "\n${GREEN}*** Checking code with pylint ***${NC}\n"
-	-@python3 -m pylint $(DIR_LIB)/*.py --rcfile .pylintrc-lib
+	@echo python --version
+	-@python -m pylint $(DIR_LIB)/*.py --rcfile .pylintrc-lib
 
 pylint-test: FORCE
 	@echo "\n${GREEN}*** Checking test files with pylint ***${NC}\n"
-	-@python3 -m pylint $(DIR_LIB)/tests/*.py --rcfile .pylintrc-test
+	@echo python --version
+	-@python -m pylint $(DIR_LIB)/tests/*.py --rcfile .pylintrc-test
 
 test: FORCE
 	@echo "\n${GREEN}*** Checking code with nosetests ***${NC}\n"
@@ -160,7 +164,7 @@ test: FORCE
 
 benchmark: FORCE
 	@echo "\n${GREEN}*** Running code benchmarks ***${NC}\n"
-	@PYTHONPATH=. python3 pynspect/benchmark/bench_jpath.py | tee bench_jpath.py.out
+	@PYTHONPATH=. python pynspect/benchmark/bench_jpath.py | tee bench_jpath.py.out
 
 
 #-------------------------------------------------------------------------------
@@ -174,11 +178,12 @@ archive: FORCE
 
 bdist: FORCE
 	@echo "\n${GREEN}*** Building Python packages ***${NC}\n"
-	@python3 setup.py sdist bdist_wheel
+	@echo python --version
+	@python setup.py sdist bdist_wheel
 
 install: FORCE
 	@echo "\n${GREEN}*** Performing local installation ***${NC}\n"
-	@pip3 install dist/pynspect*.whl --upgrade
+	@pip install dist/pynspect*.whl --upgrade
 
 deploy: FORCE
 	@echo "\n${GREEN}*** Deploying packages to PyPI ***${NC}\n"

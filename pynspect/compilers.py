@@ -24,6 +24,9 @@ There are following main tools in this package:
 """
 
 
+from __future__ import print_function
+
+
 __author__ = "Jan Mach <jan.mach@cesnet.cz>"
 __credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>"
 
@@ -88,8 +91,7 @@ def compile_datetime(rule):
         zonespl = (0, 0) if zonestr in ['z', 'Z'] else [int(i) for i in zonestr.split(":")]
         zonediff = datetime.timedelta(minutes = zonespl[0]*60+zonespl[1])
         return DatetimeRule(datetime.datetime(year, month, day, hour, minute, second, us_int) - zonediff)
-    else:
-        raise ValueError("Wrong datetime format '{}'".format(rule.value))
+    raise ValueError("Wrong datetime format '{}'".format(rule.value))
 
 def compile_timedelta(rule):
     """
@@ -109,8 +111,7 @@ def compile_timedelta(rule):
     if res is not None:
         days, hours, minutes, seconds = (int(n or 0) for n in res.group('days','hrs','mins','secs'))
         return TimedeltaRule(datetime.timedelta(days = days, hours = hours, minutes = minutes, seconds = seconds))
-    else:
-        raise ValueError("Wrong timedelta format '{}'".format(rule.value))
+    raise ValueError("Wrong timedelta format '{}'".format(rule.value))
 
 def compile_timeoper(rule):
     """

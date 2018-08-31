@@ -19,6 +19,7 @@ __author__ = "Jan Mach <jan.mach@cesnet.cz>"
 __credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>"
 
 
+import six
 import unittest
 
 from pynspect.gparser import PynspectFilterParser, PynspectGrammarSyntaxError
@@ -325,9 +326,9 @@ class TestPynspectFilterParser(unittest.TestCase):
         """
         Test parsing syntax failures.
         """
-        self.assertRaisesRegex(PynspectGrammarSyntaxError, 'Syntax error while parsing the grammar rule', self.psr.parse, 'size(Category > 5')
-        self.assertRaisesRegex(PynspectGrammarSyntaxError, 'Syntax error while parsing the grammar rule', self.psr.parse, 'Source/IP4 in [195.113.20.138')
-        self.assertRaisesRegex(PynspectGrammarSyntaxError, 'Syntax error at', self.psr.parse, 'Description eq "SSH dictionary/bruteforce attack and Source/IP4 in [195.113.20.138')
+        six.assertRaisesRegex(self, PynspectGrammarSyntaxError, 'Syntax error while parsing the grammar rule', self.psr.parse, 'size(Category > 5')
+        six.assertRaisesRegex(self, PynspectGrammarSyntaxError, 'Syntax error while parsing the grammar rule', self.psr.parse, 'Source/IP4 in [195.113.20.138')
+        six.assertRaisesRegex(self, PynspectGrammarSyntaxError, 'Syntax error at', self.psr.parse, 'Description eq "SSH dictionary/bruteforce attack and Source/IP4 in [195.113.20.138')
 
 
 #-------------------------------------------------------------------------------

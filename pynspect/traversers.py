@@ -33,6 +33,9 @@ that actually do something more interesting like filtering:
 """
 
 
+from __future__ import print_function
+
+
 __author__ = "Jan Mach <jan.mach@cesnet.cz>"
 __credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>, Andrea Kropáčová <andrea.kropacova@cesnet.cz>"
 
@@ -44,7 +47,7 @@ import datetime
 from pynspect.rules import FilteringRuleException
 
 
-class BaseRuleTreeTraverser(object):
+class BaseRuleTreeTraverser(object):  # pylint: disable=locally-disabled,useless-object-inheritance
     """
     Base class and interface definition for all rule tree traversers. This is a
     mandatory interface that is required for an object to be able to traverse

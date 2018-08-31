@@ -132,6 +132,9 @@ Rule evaluation
 """
 
 
+from __future__ import print_function
+
+
 __author__ = "Jan Mach <jan.mach@cesnet.cz>"
 __credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>, Andrea Kropáčová <andrea.kropacova@cesnet.cz>"
 
@@ -150,7 +153,7 @@ class FilteringRuleException(Exception):
         return repr(self.description)
 
 
-class Rule(object):
+class Rule(object):  # pylint: disable=locally-disabled,useless-object-inheritance
     """
     Base class for all filter tree rules.
     """

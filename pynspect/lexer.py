@@ -86,15 +86,18 @@ Currently recognized grammar tokens
 """
 
 
+from __future__ import print_function
+
+
 __author__ = "Jan Mach <jan.mach@cesnet.cz>"
 __credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>"
 
 
 import re
-import ply.lex as lex
+import ply.lex as plylex
 
 
-class PynspectFilterLexer():
+class PynspectFilterLexer(object):  # pylint: disable=locally-disabled,useless-object-inheritance
     """
     Object encapsulation of `PLY <http://www.dabeaz.com/ply/>`__ lexical analyzer
     implementation for filtering and query language grammar.
@@ -226,7 +229,7 @@ class PynspectFilterLexer():
 
         :param dict kwargs: Optional keyword arguments are passed down to underlying lex.lex object constructor.
         """
-        self.lexer = lex.lex(module=self, **kwargs)
+        self.lexer = plylex.lex(module=self, **kwargs)
 
     def test(self, data, separator = ''):
         """
@@ -255,62 +258,62 @@ class PynspectFilterLexer():
     # reduce the number of required regular expressions. So following
     # is the ugly as hell uber regular expression for unary and binary
     # operators.
-    def t_EXP_ALL(self, tok):
+    def t_EXP_ALL(self, tok):  # pylint: disable=locally-disabled,invalid-name
         r'(-|\+|\*|/|%|like|LIKE|=~|in|IN|~~|is|IS|eq|EQ|==|ne|NE|!=|<>|ge|GE|>=|gt|GT|>|le|LE|<=|lt|LT|<|or|OR|\|\||xor|XOR|\^\^|and|AND|&&|not|NOT|!|exists|EXISTS|\?)'
         tok.type = self.reserved.get(tok.value)
         tok.value = tok.type
         return tok
 
     @staticmethod
-    def t_TIMEDELTA(tok):
+    def t_TIMEDELTA(tok):  # pylint: disable=locally-disabled,invalid-name
         r'([0-9]+[D|d])?[0-9]{2}:[0-9]{2}:[0-9]{2}'
         tok.value = (tok.type, tok.value)
         return tok
 
     @staticmethod
-    def t_IPV4(tok):
+    def t_IPV4(tok):  # pylint: disable=locally-disabled,invalid-name
         r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?:\/\d{1,2}|(?:-|\.\.)\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})?'
         tok.value = (tok.type, tok.value)
         return tok
 
     @staticmethod
-    def t_IPV6(tok):
+    def t_IPV6(tok):  # pylint: disable=locally-disabled,invalid-name
         r'[:a-fA-F0-9]+:[:a-fA-F0-9]*(?:\/\d{1,3}|(?:-|\.\.)[:a-fA-F0-9]+:[:a-fA-F0-9]*)?'
         tok.value = (tok.type, tok.value)
         return tok
 
     @staticmethod
-    def t_DATETIME(tok):
+    def t_DATETIME(tok):  # pylint: disable=locally-disabled,invalid-name
         r'[0-9]{4}-[0-9]{2}-[0-9]{2}[Tt][0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?(?:[Zz]|(?:[+-][0-9]{2}:[0-9]{2}))'
         tok.value = (tok.type, tok.value)
         return tok
 
     @staticmethod
-    def t_FLOAT(tok):
+    def t_FLOAT(tok):  # pylint: disable=locally-disabled,invalid-name
         r'\d+\.\d+'
         tok.value = (tok.type, float(tok.value))
         return tok
 
     @staticmethod
-    def t_INTEGER(tok):
+    def t_INTEGER(tok):  # pylint: disable=locally-disabled,invalid-name
         r'\d+'
         tok.value = (tok.type, int(tok.value))
         return tok
 
     @staticmethod
-    def t_FUNCTION(tok):
+    def t_FUNCTION(tok):  # pylint: disable=locally-disabled,invalid-name
         r'[_a-zA-Z][_a-zA-Z0-9]{2,}\('
         tok.value = (tok.type, tok.value[:-1])
         return tok
 
     @staticmethod
-    def t_VARIABLE(tok):
+    def t_VARIABLE(tok):  # pylint: disable=locally-disabled,invalid-name
         r'[_a-zA-Z][-_a-zA-Z0-9]*(?:\[(?:\d+|-\d+|\#)\])?(?:\.?[a-zA-Z][-_a-zA-Z0-9]*(?:\[(?:\d+|-\d+|\#)\])?)*'
         tok.value = (tok.type, tok.value)
         return tok
 
     @staticmethod
-    def t_CONSTANT(tok):
+    def t_CONSTANT(tok):  # pylint: disable=locally-disabled,invalid-name
         r'"([^"]+)"|\'([^\']+)\''
         tok.value = (tok.type, re.sub('["\']', '', tok.value))
         return tok

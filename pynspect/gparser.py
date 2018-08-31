@@ -154,6 +154,9 @@ Currently implemented grammar
 """
 
 
+from __future__ import print_function
+
+
 __author__ = "Jan Mach <jan.mach@cesnet.cz>"
 __credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>"
 
@@ -175,7 +178,7 @@ class PynspectGrammarSyntaxError(Exception):
     pass
 
 
-class PynspectFilterParser():
+class PynspectFilterParser(object):  # pylint: disable=locally-disabled,useless-object-inheritance
     """
     Object encapsulation of *PLY* parser implementation for filtering and
     query language grammar used in Mentat project.

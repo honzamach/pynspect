@@ -47,9 +47,9 @@ setup(
     description = 'Python data inspection library',
     long_description = long_description,
     classifiers = [
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python :: 3 :: Only'
+        'Programming Language :: Python'
     ],
     keywords = 'library',
     url = 'https://github.com/honzamach/pynspect',
@@ -65,7 +65,8 @@ setup(
     ],
     install_requires=[
         'ipranges',
-        'ply'
+        'ply',
+        'six'
     ],
     zip_safe = True
 )

@@ -125,6 +125,8 @@ The current implementation has following known drawbacks:
 
 """
 
+from __future__ import print_function
+
 
 __author__ = "Jan Mach <jan.mach@cesnet.cz>"
 __credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>"
@@ -182,7 +184,7 @@ def cache_clear():
     """
     Clear internal JPath cache.
     """
-    global _JPATH_CACHE
+    global _JPATH_CACHE  # pylint: disable=locally-disabled,global-statement
     _JPATH_CACHE = {}
 
 

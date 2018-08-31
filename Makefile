@@ -134,24 +134,28 @@ pyflakes: pyflakes-lib pyflakes-test
 
 pyflakes-lib: FORCE
 	@echo "\n${GREEN}*** Checking code with pyflakes ***${NC}\n"
-	@echo python --version
+	@python --version
+	@echo ""
 	-@python -m pyflakes $(DIR_LIB)/*.py
 
 pyflakes-test: FORCE
 	@echo "\n${GREEN}*** Checking test files with pyflakes ***${NC}\n"
-	@echo python --version
+	@python --version
+	@echo ""
 	-@python -m pyflakes $(DIR_LIB)/tests/*.py
 
 pylint: pylint-lib pylint-test
 
 pylint-lib: FORCE
 	@echo "\n${GREEN}*** Checking code with pylint ***${NC}\n"
-	@echo python --version
+	@python --version
+	@echo ""
 	-@python -m pylint $(DIR_LIB)/*.py --rcfile .pylintrc-lib
 
 pylint-test: FORCE
 	@echo "\n${GREEN}*** Checking test files with pylint ***${NC}\n"
-	@echo python --version
+	@python --version
+	@echo ""
 	-@python -m pylint $(DIR_LIB)/tests/*.py --rcfile .pylintrc-test
 
 test: FORCE
@@ -178,7 +182,8 @@ archive: FORCE
 
 bdist: FORCE
 	@echo "\n${GREEN}*** Building Python packages ***${NC}\n"
-	@echo python --version
+	@python --version
+	@echo ""
 	@python setup.py sdist bdist_wheel
 
 install: FORCE

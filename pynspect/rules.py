@@ -153,7 +153,7 @@ class FilteringRuleException(Exception):
         return repr(self.description)
 
 
-class Rule(object):  # pylint: disable=locally-disabled,useless-object-inheritance
+class Rule(object):
     """
     Base class for all filter tree rules.
     """

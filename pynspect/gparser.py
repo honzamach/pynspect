@@ -178,7 +178,7 @@ class PynspectGrammarSyntaxError(Exception):
     pass
 
 
-class PynspectFilterParser(object):  # pylint: disable=locally-disabled,useless-object-inheritance
+class PynspectFilterParser(object):
     """
     Object encapsulation of *PLY* parser implementation for filtering and
     query language grammar used in Mentat project.

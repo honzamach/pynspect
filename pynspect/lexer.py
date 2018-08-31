@@ -97,7 +97,7 @@ import re
 import ply.lex as plylex
 
 
-class PynspectFilterLexer(object):  # pylint: disable=locally-disabled,useless-object-inheritance
+class PynspectFilterLexer(object):
     """
     Object encapsulation of `PLY <http://www.dabeaz.com/ply/>`__ lexical analyzer
     implementation for filtering and query language grammar.

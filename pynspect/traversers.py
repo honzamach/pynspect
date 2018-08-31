@@ -47,7 +47,7 @@ import datetime
 from pynspect.rules import FilteringRuleException
 
 
-class BaseRuleTreeTraverser(object):  # pylint: disable=locally-disabled,useless-object-inheritance
+class BaseRuleTreeTraverser(object):
     """
     Base class and interface definition for all rule tree traversers. This is a
     mandatory interface that is required for an object to be able to traverse

@@ -71,7 +71,7 @@ check: pyflakes pylint test
 help:
 	@echo ""
 	@echo " ${GREEN}────────────────────────────────────────────────────────────────────────────────${NC}"
-	@echo " ${GREEN}                          LIST AVAILABLE OF MAKE TARGETS${NC}"
+	@echo " ${GREEN}                          LIST OF AVAILABLE MAKE TARGETS${NC}"
 	@echo " ${GREEN}────────────────────────────────────────────────────────────────────────────────${NC}"
 	@echo ""
 	@echo "  * ${GREEN}default${NC}: alias for help, you have to pick a target"

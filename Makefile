@@ -18,6 +18,11 @@ SPHINXPROJ      = Pynspect
 SPHINXSOURCEDIR = .
 SPHINXBUILDDIR  = doc/_build
 
+PYTHON    = python
+PIP       = pip
+NOSETESTS = nosetests
+TWINE     = twine
+
 #
 # Color code definitions for colored terminal output
 # https://stackoverflow.com/questions/5947742/how-to-change-the-output-color-of-echo-in-linux
@@ -65,9 +70,9 @@ check: pyflakes pylint test
 
 help:
 	@echo ""
-	@echo " ${GREEN}─────────────────────────────────────────────────${NC}"
-	@echo " ${GREEN}              LIST OF MAKE TARGETS${NC}"
-	@echo " ${GREEN}─────────────────────────────────────────────────${NC}"
+	@echo " ${GREEN}────────────────────────────────────────────────────────────────────────────────${NC}"
+	@echo " ${GREEN}                          LIST AVAILABLE OF MAKE TARGETS${NC}"
+	@echo " ${GREEN}────────────────────────────────────────────────────────────────────────────────${NC}"
 	@echo ""
 	@echo "  * ${GREEN}default${NC}: alias for help, you have to pick a target"
 	@echo "  * ${GREEN}help${NC}: print this help and exit"
@@ -94,7 +99,7 @@ help:
 	@echo "  * ${GREEN}install${NC}: install distribution on local machine"
 	@echo "  * ${GREEN}deploy${NC}:  deploy to PyPI"
 	@echo ""
-	@echo " ${GREEN}─────────────────────────────────────────────────${NC}"
+	@echo " ${GREEN}────────────────────────────────────────────────────────────────────────────────${NC}"
 	@echo ""
 
 
@@ -102,7 +107,7 @@ help:
 
 
 show-version: FORCE
-	@PYTHONPATH=. python -c "import pynspect; print(pynspect.__version__);"
+	@PYTHONPATH=. $(PYTHON) -c "import pynspect; print(pynspect.__version__);"
 
 
 #-------------------------------------------------------------------------------
@@ -112,7 +117,7 @@ deps: deps-python
 
 deps-python: FORCE
 	@echo "\n${GREEN}*** Installing Python dependencies ***${NC}\n"
-	@pip install -r requirements.pip --upgrade
+	@$(PIP) install -r requirements.pip --upgrade
 
 
 #-------------------------------------------------------------------------------
@@ -134,33 +139,33 @@ pyflakes: pyflakes-lib pyflakes-test
 
 pyflakes-lib: FORCE
 	@echo "\n${GREEN}*** Checking code with pyflakes ***${NC}\n"
-	@python --version
+	@$(PYTHON) --version
 	@echo ""
-	-@python -m pyflakes $(DIR_LIB)/*.py
+	-@$(PYTHON) -m pyflakes $(DIR_LIB)/*.py
 
 pyflakes-test: FORCE
 	@echo "\n${GREEN}*** Checking test files with pyflakes ***${NC}\n"
-	@python --version
+	@$(PYTHON) --version
 	@echo ""
-	-@python -m pyflakes $(DIR_LIB)/tests/*.py
+	-@$(PYTHON) -m pyflakes $(DIR_LIB)/tests/*.py
 
 pylint: pylint-lib pylint-test
 
 pylint-lib: FORCE
 	@echo "\n${GREEN}*** Checking code with pylint ***${NC}\n"
-	@python --version
+	@$(PYTHON) --version
 	@echo ""
-	-@python -m pylint $(DIR_LIB)/*.py --rcfile .pylintrc-lib
+	-@$(PYTHON) -m pylint $(DIR_LIB)/*.py --rcfile .pylintrc-lib
 
 pylint-test: FORCE
 	@echo "\n${GREEN}*** Checking test files with pylint ***${NC}\n"
-	@python --version
+	@$(PYTHON) --version
 	@echo ""
-	-@python -m pylint $(DIR_LIB)/tests/*.py --rcfile .pylintrc-test
+	-@$(PYTHON) -m pylint $(DIR_LIB)/tests/*.py --rcfile .pylintrc-test
 
 test: FORCE
 	@echo "\n${GREEN}*** Checking code with nosetests ***${NC}\n"
-	@nosetests
+	@$(NOSETESTS)
 
 
 #-------------------------------------------------------------------------------
@@ -168,7 +173,7 @@ test: FORCE
 
 benchmark: FORCE
 	@echo "\n${GREEN}*** Running code benchmarks ***${NC}\n"
-	@PYTHONPATH=. python pynspect/benchmark/bench_jpath.py | tee bench_jpath.py.out
+	@PYTHONPATH=. $(PYTHON) pynspect/benchmark/bench_jpath.py | tee bench_jpath.py.out
 
 
 #-------------------------------------------------------------------------------
@@ -182,17 +187,17 @@ archive: FORCE
 
 bdist: FORCE
 	@echo "\n${GREEN}*** Building Python packages ***${NC}\n"
-	@python --version
+	@$(PYTHON) --version
 	@echo ""
-	@python setup.py sdist bdist_wheel
+	@$(PYTHON) setup.py sdist bdist_wheel
 
 install: FORCE
 	@echo "\n${GREEN}*** Performing local installation ***${NC}\n"
-	@pip install dist/pynspect*.whl --upgrade
+	@$(PIP) install dist/pynspect*.whl --upgrade
 
 deploy: FORCE
 	@echo "\n${GREEN}*** Deploying packages to PyPI ***${NC}\n"
-	@twine upload dist/* --skip-existing
+	@$(TWINE) upload dist/* --skip-existing
 
 
 # Empty rule as dependency will force make to always perform target

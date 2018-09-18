@@ -333,6 +333,38 @@ class TestDataObjectFilter(unittest.TestCase):
         self.assertEqual(repr(rule), "COMPBINOP(FUNCTION(size(VARIABLE('Source.IP4'),)) OP_GT INTEGER(4))")
         self.assertEqual(self.flt.filter(rule, self.test_msg1), False)
 
+        rule = self.psr.parse('(strlen(ID) > 8)')
+        self.assertEqual(repr(rule), "COMPBINOP(FUNCTION(strlen(VARIABLE('ID'),)) OP_GT INTEGER(8))")
+        self.assertEqual(self.flt.filter(rule, self.test_msg1), True)
+
+        rule = self.psr.parse('(strlen(ID) < 8)')
+        self.assertEqual(repr(rule), "COMPBINOP(FUNCTION(strlen(VARIABLE('ID'),)) OP_LT INTEGER(8))")
+        self.assertEqual(self.flt.filter(rule, self.test_msg1), False)
+
+        rule = self.psr.parse('(strlen(Description) > 8)')
+        self.assertEqual(repr(rule), "COMPBINOP(FUNCTION(strlen(VARIABLE('Description'),)) OP_GT INTEGER(8))")
+        self.assertEqual(self.flt.filter(rule, self.test_msg1), None)
+
+        rule = self.psr.parse('(strlen(Description) < 8)')
+        self.assertEqual(repr(rule), "COMPBINOP(FUNCTION(strlen(VARIABLE('Description'),)) OP_LT INTEGER(8))")
+        self.assertEqual(self.flt.filter(rule, self.test_msg1), None)
+
+        rule = self.psr.parse('(strlen(Node.Name) > 20)')
+        self.assertEqual(repr(rule), "COMPBINOP(FUNCTION(strlen(VARIABLE('Node.Name'),)) OP_GT INTEGER(20))")
+        self.assertEqual(self.flt.filter(rule, self.test_msg1), True)
+
+        rule = self.psr.parse('(strlen(Node.Name) > 30)')
+        self.assertEqual(repr(rule), "COMPBINOP(FUNCTION(strlen(VARIABLE('Node.Name'),)) OP_GT INTEGER(30))")
+        self.assertEqual(self.flt.filter(rule, self.test_msg1), False)
+
+        rule = self.psr.parse('(strlen(Node.Name) < 20)')
+        self.assertEqual(repr(rule), "COMPBINOP(FUNCTION(strlen(VARIABLE('Node.Name'),)) OP_LT INTEGER(20))")
+        self.assertEqual(self.flt.filter(rule, self.test_msg1), True)
+
+        rule = self.psr.parse('(strlen(Node.Name) < 10)')
+        self.assertEqual(repr(rule), "COMPBINOP(FUNCTION(strlen(VARIABLE('Node.Name'),)) OP_LT INTEGER(10))")
+        self.assertEqual(self.flt.filter(rule, self.test_msg1), False)
+
         rule = self.psr.parse('(time() > 500.12)')
         self.assertEqual(repr(rule), "COMPBINOP(FUNCTION(time()) OP_GT FLOAT(500.12))")
         self.assertEqual(self.flt.filter(rule, self.test_msg1), True)

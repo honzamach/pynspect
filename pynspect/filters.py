@@ -117,6 +117,21 @@ def grfcbk_size(args):
     """
     return len(args[0])
 
+def grfcbk_strlen(args):
+    """
+    Grammar rule function callback: **strlen**. This function will measure the
+    string length of all subitems of the first item in argument list.
+
+    :param list args: List of function arguments.
+    :return: Length of all subitems of the first item in argument list.
+    :rtype: int or list
+    """
+    if not args[0]:
+        return None
+    if isinstance(args[0], list):
+        return [len(x) for x in args[0]]
+    return len(args[0])
+
 def grfcbk_time(args):
     """
     Grammar rule function callback: **time**. This function will call the
@@ -178,6 +193,7 @@ class DataObjectFilter(BaseFilteringTreeTraverser):
         super(DataObjectFilter, self).__init__()
 
         self.register_function('size',   grfcbk_size)
+        self.register_function('strlen', grfcbk_strlen)
         self.register_function('time',   grfcbk_time)
         self.register_function('utcnow', grfcbk_utcnow)
 

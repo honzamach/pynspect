@@ -22,29 +22,29 @@ Features
 
 Currently the package contains following features:
 
-:py:mod:`pynspect.jpath`
+``pynspect.jpath``
     Module for parsing **JPaths** and setting or retrieving values on given
     **JPath** within data structures.
 
-:py:mod:`pynspect.lexer`
+``pynspect.lexer``
     Module encapsulating of `PLY <http://www.dabeaz.com/ply/>`__ lexical analyzer
     for internal filtering and query language grammar.
 
-:py:mod:`pynspect.gparser`
+``pynspect.gparser``
     Module encapsulating of `PLY <http://www.dabeaz.com/ply/>`__ parser for internal
     filtering and query language grammar.
 
-:py:mod:`pynspect.rules`
+``pynspect.rules``
     Module containing object representations of internal filtering and query
     language grammar.
 
-:py:mod:`pynspect.traversers`
+``pynspect.traversers``
     Module containing tools for traversing and processing rule trees.
 
-:py:mod:`pynspect.compilers`
+``pynspect.compilers``
     Module containing tools for compiling rule trees into different structures.
 
-:py:mod:`pynspect.filters`
+``pynspect.filters``
     Module providing high-level tools for data inspection based on internal filtering
     and query grammar.
 

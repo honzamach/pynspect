@@ -646,7 +646,7 @@ class BaseFilteringTreeTraverser(BaseRuleTreeTraverser):  # pylint: disable=loca
         if not operation in self.binops_logical:
             raise ValueError("Invalid logical binary operation '{}'".format(operation))
         result = self.binops_logical[operation](left, right)
-        return bool(result)
+        return result
 
     def evaluate_binop_comparison(self, operation, left, right, **kwargs):
         """

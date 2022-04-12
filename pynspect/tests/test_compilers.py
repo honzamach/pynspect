@@ -20,6 +20,7 @@ __credits__ = "Pavel Kácha <pavel.kacha@cesnet.cz>"
 
 
 import unittest
+from datetime import datetime
 
 from pynspect.rules import ConstantRule, NumberRule
 from pynspect.gparser import PynspectFilterParser
@@ -125,7 +126,7 @@ class TestIDEAFilterCompiler(unittest.TestCase):
         )
         self.assertEqual(
             repr(compile_datetime(ConstantRule('1527155786'))),
-            "DATETIME(datetime.datetime(2018, 5, 24, 11, 56, 26))"
+            "DATETIME({0!r})".format(datetime.fromtimestamp(1527155786))
         )
         self.assertEqual(
             repr(compile_timedelta(NumberRule('3600'))),
@@ -153,7 +154,7 @@ class TestIDEAFilterCompiler(unittest.TestCase):
         )
         self.assertEqual(
             repr(compile_timeoper(ConstantRule('1527155786'))),
-            "DATETIME(datetime.datetime(2018, 5, 24, 11, 56, 26))"
+            "DATETIME({0!r})".format(datetime.fromtimestamp(1527155786))
         )
         self.assertEqual(
             repr(compile_timeoper(NumberRule('3600'))),
